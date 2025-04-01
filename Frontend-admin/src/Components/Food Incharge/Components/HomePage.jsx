@@ -1,7 +1,6 @@
 import React from 'react';
-import Homebg from '../assets/FoodIncharge/HomeBG.jpg';
+import Homebg from '../Assets/HomeBG.jpg';
 import { useNavigate } from 'react-router-dom';
-
 
 const HomePage = () => {
   const navigate = useNavigate();

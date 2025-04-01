@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import Navbar from "./Components/Navbar";
-import LoginPage from "./Components/LoginPage";
-import HomePage from "./Components/HomePage";
-import MenuPage from "./Components/Menu/MenuPage";
-import BookingPage from "./Components/BookingPage";
-import SupplierPage from "./Components/SupplierPage";
-import Support from "./Components/Support";
-import Footer from "./Components/Footer";
+import Navbar from "./Components/Food Incharge/Components/Navbar";
+import LoginPage from "./Components/Food Incharge/Components/LoginPage";
+import HomePage from "./Components/Food Incharge/Components/HomePage";
+import MenuPage from "./Components/Food Incharge/Components/Menu/MenuPage";
+import BookingPage from "./Components/Food Incharge/Components/BookingPage";
+import SupplierPage from "./Components/Food Incharge/Components/SupplierPage";
+import Support from "./Components/Food Incharge/Components/Support";
+import Footer from "./Components/Food Incharge/Components/Footer";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

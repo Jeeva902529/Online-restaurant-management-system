@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Modal from "react-modal";
 import { Link } from "react-router-dom";
-import '../App.css';
+import '../Styles/Style.css';
 
 // Modal setup for accessibility
 Modal.setAppElement('#root');

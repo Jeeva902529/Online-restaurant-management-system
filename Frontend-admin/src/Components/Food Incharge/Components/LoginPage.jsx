@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import LoginImg from '../assets/FoodIncharge/Login BG.jpg';
+import LoginImg from '../Assets/Login BG.jpg';
 
 const LoginPage = ({ setIsAuthenticated }) => {
   const [username, setUsername] = useState("");

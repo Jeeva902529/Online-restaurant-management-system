@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Logo from "../assets/FoodIncharge/Logo.png";
-import MenuIcon from "../assets/FoodIncharge/Menu.png";
-import Notification from "../assets/FoodIncharge/Notification.png";
+import Logo from "../Assets/Logo.png";
+import MenuIcon from "../Assets/Menu.png";
+import Notification from "../Assets/Notification.png";
 
 const Navbar = ({ setIsAuthenticated }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import SupportImg from "../assets/FoodIncharge/Support.jpg"; // Replace with actual image path
+import SupportImg from "../Assets/Support.jpg"; // Replace with actual image path
 
 const Support = () => {
   const [formData, setFormData] = useState({ name: "", email: "", message: "" });
