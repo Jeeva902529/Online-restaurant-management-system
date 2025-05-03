@@ -6,54 +6,56 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 
+const http = require("http");
+const { Server } = require("socket.io");
+
 const authRoutes = require("./routes/authRoutes");
 const orderRoutes = require("./routes/orders");
 const cartRoutes = require("./routes/cart");
 const loginRoutes = require("./routes/loginRoutes");
 const menuRoutes = require("./routes/menuRoutes");
 const supportRoutes = require("./routes/support");
+const bookingRoutes = require("./routes/bookingRoutes");
+const appAuthRoutes = require("./routes/appAuth");
+const foodRoutes = require("./routes/foodRouter");
 
-const foodRoutes = [
-  "momos", "biryani", "fried-rice", "halwa", "dosa", "pasta", "burger",
-  "idli", "naan", "roll", "pizza", "sandwich", "cake", "icecream", "cookies",
-  "pie", "brownies", "doughnuts", "frieddesserts", "pudding", "pastries",
-  "gulabjamun", "jalebi", "noodles"
-];
+
+const registerRoute = require("./routes/registerRoute");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 const app = express();
 
-// Middleware
+// ✅ Middleware
+app.use(cors()); // <-- Simplified CORS
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser());
 app.use(express.json());
-app.use(cors({
-  origin: "http://localhost:5173", // Change this to your frontend URL
-  credentials: true,
-}));
 
-// Connect to MongoDB
+// ✅ MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("✅ MongoDB Connected"))
   .catch((err) => console.log("❌ MongoDB Connection Error:", err));
 
-// Use routes
+// ✅ Routes
 app.use("/api", authRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/menu", menuRoutes);
 app.use("/api/support", supportRoutes);
+app.use("/api/booking", bookingRoutes);
+app.use("/api", appAuthRoutes);
+app.use("/api/foods", foodRoutes); // 👈 food routes
 
-// Register food routes dynamically
-foodRoutes.forEach((route) => {
-  app.use(`/api/${route}`, require(`./routes/${route}`));
-});
+app.use("/api", registerRoute);
+app.use("/api/reviews", reviewRoutes);
 
-// 📩 Support Page - Email Sending Route
+// 📩 Support email route
 app.post("/api/support", async (req, res) => {
   const { name, email, message } = req.body;
+
   if (!name || !email || !message) {
     return res.status(400).json({ error: "All fields are required" });
   }
@@ -82,5 +84,6 @@ app.post("/api/support", async (req, res) => {
   }
 });
 
+// ✅ Server listener
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

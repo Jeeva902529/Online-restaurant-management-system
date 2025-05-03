@@ -1,11 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
+const ArchivedOrder = require("../models/ArchivedOrder");
 
-// 📌 GET user orders
+// 📌 GET all orders
 router.get("/my-orders", async (req, res) => {
   try {
-    const orders = await Order.find(); // Fetch all orders (you can filter by userId or tableNumber later)
+    const orders = await Order.find();
     res.json(orders);
   } catch (error) {
     res.status(500).json({ message: "Error fetching orders" });
@@ -16,20 +17,18 @@ router.get("/my-orders", async (req, res) => {
 router.post("/place-order", async (req, res) => {
   const { foodName, basePrice, addOns, specialInstructions, totalPrice, tableNumber } = req.body;
 
-  // Validate input
   if (!foodName || !basePrice || !totalPrice || !tableNumber) {
     return res.status(400).json({ message: "All fields (foodName, basePrice, totalPrice, tableNumber) are required" });
   }
 
   try {
-    // Create new order with tableNumber
     const newOrder = new Order({
       foodName,
       basePrice,
       addOns,
       specialInstructions,
       totalPrice,
-      tableNumber, // Include tableNumber in the database
+      tableNumber,
     });
 
     await newOrder.save();
@@ -46,6 +45,34 @@ router.delete("/cancel-order/:id", async (req, res) => {
     res.json({ message: "Order cancelled successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error cancelling order" });
+  }
+});
+
+// 📌 MARK orders as paid (archive & delete)
+router.post("/mark-paid/:tableNumber", async (req, res) => {
+  const { tableNumber } = req.params;
+
+  try {
+    const orders = await Order.find({ tableNumber: parseInt(tableNumber) });
+
+    if (orders.length === 0) {
+      return res.status(404).json({ message: "No orders found for this table" });
+    }
+
+    // Prepare archive orders with timestamp
+    const archivedOrders = orders.map((order) => {
+      const archived = { ...order.toObject(), paidAt: new Date() };
+      delete archived._id; // Remove _id to prevent conflict
+      return archived;
+    });
+
+    await ArchivedOrder.insertMany(archivedOrders);
+    await Order.deleteMany({ tableNumber: parseInt(tableNumber) });
+
+    res.status(200).json({ message: `Orders for Table ${tableNumber} archived and cleared.` });
+  } catch (error) {
+    console.error("Error archiving orders:", error);
+    res.status(500).json({ message: "Server error archiving orders." });
   }
 });
 

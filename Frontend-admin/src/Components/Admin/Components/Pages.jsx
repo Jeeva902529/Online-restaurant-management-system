@@ -15,7 +15,7 @@ const Pages = () => {
       </div>
 
       {/* Navigation Links */}
-      <ul className="mt-6 space-y-3 text-[23px] flex flex-col pl-[13%]">
+      <ul className="mt-6 space-y-3 text-[22px] flex flex-col pl-[13%]">
         <li
           onClick={() => navigate("/Dashboard")}
           className={`cursor-pointer font-medium ${
@@ -63,6 +63,14 @@ const Pages = () => {
           } hover:text-red-400 px-4 py-2`}
         >
           Support
+        </li>
+        <li
+          onClick={() => navigate("/Registration")}
+          className={`cursor-pointer font-medium ${
+            location.pathname === "/Registration" ? "text-red-500" : "text-white"
+          } hover:text-red-400 px-4 py-2`}
+        >
+          Regisration
         </li>
       </ul>
 

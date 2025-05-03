@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { io } from "socket.io-client";
-import Pages from  "../Components/Pages";
+import Pages from "../Components/Pages";
 import Navbar from "../Components/Navbar";
 
 const socket = io("http://localhost:5000");
@@ -11,6 +11,9 @@ const AdminMenu = () => {
   const [reviews, setReviews] = useState([]);
   const [totalOrders, setTotalOrders] = useState(0); // Default 0
   const [pendingOrders, setPendingOrders] = useState(0); // Default 0
+  const [completedOrders, setCompletedOrders] = useState(0); // Default 0
+  const [loadingReviews, setLoadingReviews] = useState(true); // Track loading state for reviews
+  const [reviewsError, setReviewsError] = useState(null); // Store error for reviews fetching
 
   useEffect(() => {
     // Fetch initial order counts
@@ -18,46 +21,36 @@ const AdminMenu = () => {
       .then(response => {
         setTotalOrders(response.data.totalOrders || 0);
         setPendingOrders(response.data.pendingOrders || 0);
+        setCompletedOrders(response.data.completedOrders || 0); // Set initial completed orders
       })
       .catch(error => console.error("Error fetching order counts:", error));
     
-    // Listen for real-time updates
+    // Listen for real-time updates for orders
     const handleOrderUpdate = (data) => {
       setTotalOrders(data.totalOrders || 0);
       setPendingOrders(data.pendingOrders || 0);
+      setCompletedOrders(data.completedOrders || 0); // Update completed orders dynamically
     };
 
     socket.on("orderUpdated", handleOrderUpdate);
-  
+
     return () => {
       socket.off("orderUpdated", handleOrderUpdate);
     };
   }, []);
 
   useEffect(() => {
-    // Connect to the socket server
-    const socket = io("http://localhost:5000");
-  
-    // Listen for updates
-    socket.on("orderUpdate", (data) => {
-      setTotalOrders(data.totalOrders);
-      setPendingOrders(data.pendingOrders);
-    });
-  
-    // Cleanup when the component is unmounted
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-
-  useEffect(() => {
+    // Fetch reviews on component mount
     axios.get("http://localhost:5000/reviews")
       .then((response) => {
         console.log("Fetched reviews:", response.data); // Debugging line
         setReviews(response.data);
+        setLoadingReviews(false); // Set loading state to false after fetching reviews
       })
       .catch((error) => {
         console.error("Error fetching reviews:", error.message);
+        setReviewsError("No reviews yet.");
+        setLoadingReviews(false); // Set loading state to false in case of error
       });
   }, []);
 
@@ -70,7 +63,7 @@ const AdminMenu = () => {
       <div className="flex-1 p-10 text-2xl text-black bg-[#2b2c40]">
         <Navbar />
         <div className="w-[100%] h-[26%] mt-0 flex justify-evenly items-center bg-[#2b2c40]">
-        <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
+          <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
             <h3 className="text-lg font-semibold">Total Orders</h3>
             <p className="text-2xl font-bold">{totalOrders}</p>
           </div>
@@ -80,7 +73,7 @@ const AdminMenu = () => {
           </div>
           <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
             <h3 className="text-lg font-semibold">Completed Orders</h3>
-            <p className="text-2xl font-bold">958</p>
+            <p className="text-2xl font-bold">{completedOrders}</p> {/* Dynamically updated */}
           </div>
           <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
             <h3 className="text-lg font-semibold">Active Suppliers</h3>
@@ -101,12 +94,7 @@ const AdminMenu = () => {
                 <span>0%</span>
               </div>
               <div className="flex justify-between w-full items-end h-64 bg-[#2b2c40] p-4 rounded-lg">
-                {[
-                  { height: 50 },
-                  { height: 100 },
-                  { height: 150 },
-                  { height: 200 }
-                ].map((bar, index) => (
+                {[{ height: 50 }, { height: 100 }, { height: 150 }, { height: 200 }].map((bar, index) => (
                   <div key={index} className="w-1/5 flex flex-col items-center">
                     <motion.div
                       className="bg-red-500 w-10 rounded-lg"
@@ -126,36 +114,38 @@ const AdminMenu = () => {
             </div>
           </div>
 
-{/* Customer Reviews Section */}
-<div className="w-[40%] bg-[#37375b] text-white p-6 rounded-xl flex flex-col mx-auto sm:w-[80%] md:w-[60%] lg:w-[40%]">
-  <h3 className="text-[24px] font-bold mb-4 text-center">Customer Reviews</h3>
+          {/* Customer Reviews Section */}
+          <div className="w-[40%] bg-[#37375b] text-white p-6 rounded-xl flex flex-col mx-auto sm:w-[80%] md:w-[60%] lg:w-[40%]">
+            <h3 className="text-[24px] font-bold mb-4 text-center">Customer Reviews</h3>
 
-  {/* Scrollable Review List */}
-  <div className="space-y-4 overflow-y-auto max-h-[330px] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 p-2">
-    {reviews && reviews.length > 0 ? (
-      reviews.map((review, index) => (
-        <div key={index} className="bg-gray-700 p-4 rounded-lg flex items-center justify-between shadow-lg">
-          <div className="flex items-center gap-3">
-            {/* User initials */}
-            <div className="w-10 h-10 bg-[#52527a] rounded-full flex items-center justify-center text-white text-lg">
-              {review.user ? review.user.charAt(0).toUpperCase() : "🧑"}
+            {/* Scrollable Review List */}
+            <div className="space-y-4 overflow-y-auto max-h-[330px] scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 p-2">
+              {loadingReviews ? (
+                <div className="bg-[#52527a] p-4 rounded-lg text-center">Loading reviews...</div>
+              ) : reviewsError ? (
+                <div className="bg-[#52527a] p-4 rounded-lg text-center">{reviewsError}</div>
+              ) : reviews.length > 0 ? (
+                reviews.map((review, index) => (
+                  <div key={index} className="bg-gray-700 p-4 rounded-lg flex items-center justify-between shadow-lg">
+                    <div className="flex items-center gap-3">
+                      {/* User initials */}
+                      <div className="w-10 h-10 bg-[#52527a] rounded-full flex items-center justify-center text-white text-lg">
+                        {review.user ? review.user.charAt(0).toUpperCase() : "🧑"}
+                      </div>
+                      <p className="text-sm">{review.review}</p> {/* Updated from 'content' to 'review' */}
+                    </div>
+                    <button className="bg-gray-600 hover:bg-gray-500 px-3 py-1 text-xs rounded-lg transition duration-200">
+                      Reply
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <div className="bg-[#52527a] p-4 rounded-lg text-center">
+                  <p>No reviews yet</p>
+                </div>
+              )}
             </div>
-            <p className="text-sm">{review.review}</p> {/* Updated from 'content' to 'review' */}
           </div>
-          <button className="bg-gray-600 hover:bg-gray-500 px-3 py-1 text-xs rounded-lg transition duration-200">
-            Reply
-          </button>
-        </div>
-      ))
-    ) : (
-      <div className="bg-[#52527a] p-4 rounded-lg text-center">
-        <p>No reviews yet</p>
-      </div>
-    )}
-  </div>
-</div>
-
-
         </div>
       </div>
     </div>

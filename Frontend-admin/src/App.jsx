@@ -17,6 +17,7 @@ import FoodDetails from "./components/Admin/Components/FoodDetails";
 import SupplierInfo from "./components/Admin/Components/SupplierInfo";
 import CustomerDetails from "./components/Admin/Components/CustomerDetails";
 import Support from './components/Admin/Components/Support';
+import Registration from './components/Admin/Components/Registration';
 
 function App() {
 
@@ -81,6 +82,7 @@ function App() {
        <Route path="/CustomerDetails" element={<CustomerDetails />} />
        <Route path="/SupplierInfo" element={<SupplierInfo />} />
        <Route path="/Support" element={<Support />} />
+       <Route path="/Registration" element={<Registration />} />
     </Routes>
 
       {/* {!isAuthPage && location.pathname === "/" && <Support />}

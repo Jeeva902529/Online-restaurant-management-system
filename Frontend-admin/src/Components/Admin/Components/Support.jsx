@@ -95,7 +95,7 @@ const Support = () => {
       <div className="flex-1 p-10 text-2xl text-black bg-[#2b2c40]">
         <Navbar />
 
-        <div className="w-full min-h-screen bg-[#2b2c40] text-white p-6 rounded-lg shadow-md">
+        <div className="w-full bg-[#2b2c40] text-white p-6 rounded-lg shadow-md">
           <h2 className="text-3xl font-bold mb-4 text-center">Complaint Management</h2>
 
           {/* Error Handling */}

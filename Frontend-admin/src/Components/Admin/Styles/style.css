@@ -1,0 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;600&display=swap');
+
+.font-lora {
+    font-family: 'Lora', serif;
+}
+body{
+    background-color: #373754;
+}

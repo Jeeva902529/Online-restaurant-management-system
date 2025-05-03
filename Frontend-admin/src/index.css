@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+body {
+    @apply bg-[#2b2c40] text-white;
+    font-family: 'Lora', serif;
+  }
+  
