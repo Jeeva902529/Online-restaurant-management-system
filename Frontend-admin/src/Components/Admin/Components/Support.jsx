@@ -106,7 +106,7 @@ const Support = () => {
           )}
           
           {/* Complaints List */}
-          <div className="overflow-y-auto bg-[#37375b] p-4 rounded-lg h-[500px]">
+          <div className="overflow-y-auto bg-[#37375b] p-4 rounded-lg h-[450px]">
             <table className="w-full border-collapse">
               {/* Table Header */}
               <thead>

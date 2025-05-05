@@ -11,17 +11,17 @@ function OrderDetails() {
 
   useEffect(() => {
     // Fetch orders initially
-    axios.get("http://localhost:5000/orders").then((res) => {
+    axios.get("http://localhost:5000/api/orders/my-orders").then((res) => {
       setOrders(res.data.reverse()); // Latest order first
     });
 
     // Listen for new orders via socket
     socket.on("orderUpdate", ({ orders }) => {
       setOrders(orders);
-    });    
-    
+    });
+
     return () => {
-      socket.off("newOrder");
+      socket.off("orderUpdate");
     };
   }, []);
 
@@ -55,9 +55,9 @@ function OrderDetails() {
               {orders.map((order, index) => (
                 <tr key={index} className="text-center">
                   <td className="p-3">{order.orderId}</td>
-                  <td className="p-3">{order.tableNo}</td>
-                  <td className="p-3 text-left pl-[7%]">{order.foodItems}</td>
-                  <td className="p-3 text-left pl-[5%]">{order.status}</td>
+                  <td className="p-3">{order.tableNumber}</td>
+                  <td className="p-3 text-left pl-[7%]">{order.foodName}</td>
+                  <td className="p-3 text-left pl-[5%]">Pending</td> {/* static status */}
                   <td className="p-3 text-left pl-[5.1%]">View</td>
                 </tr>
               ))}
