@@ -8,8 +8,38 @@ const nodemailer = require("nodemailer");
 const http = require("http");
 const { Server } = require("socket.io");
 
+const app = express();
+const server = http.createServer(app);
+
+// ✅ Socket.io setup
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Set to your frontend domain in production
+    methods: ["GET", "POST"],
+  },
+});
+
+// ✅ Attach io to app so routes can use it
+app.set("io", io);
+
+// ✅ Middleware
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(cookieParser());
+
+// ✅ MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+
+// ✅ Import Routes
 const authRoutes = require("./routes/authRoutes");
-const orderRoutes = require("./routes/orders");
 const cartRoutes = require("./routes/cart");
 const loginRoutes = require("./routes/loginRoutes");
 const menuRoutes = require("./routes/menuRoutes");
@@ -19,34 +49,10 @@ const appAuthRoutes = require("./routes/appAuth");
 const foodRoutes = require("./routes/foodRouter");
 const registerRoute = require("./routes/registerRoute");
 const reviewRoutes = require("./routes/reviewRoutes");
+const attendanceRoute = require("./routes/attendance");
+const orderRoutes = require("./routes/orders")(io); // Function call passing io
 
-const Order = require("./models/Order");
-
-const app = express();
-
-// Set up server and socket.io
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*", // Allow all origins for now
-    methods: ["GET", "POST"],
-  },
-});
-
-// ✅ Middleware
-app.use(cors());
-app.use(bodyParser.json({ limit: "50mb" }));
-app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
-app.use(cookieParser());
-app.use(express.json());
-
-// ✅ MongoDB connection
-mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.log("❌ MongoDB Connection Error:", err));
-
-// ✅ Routes
+// ✅ Use Routes
 app.use("/api", authRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
@@ -58,8 +64,9 @@ app.use("/api", appAuthRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api", registerRoute);
 app.use("/api/reviews", reviewRoutes);
+app.use("/attendance", attendanceRoute);
 
-// 📩 Support email route
+// 📩 Support Email Endpoint (Optional)
 app.post("/api/support", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -91,55 +98,19 @@ app.post("/api/support", async (req, res) => {
   }
 });
 
-// ✅ Corrected order route with auto-increment orderId
-app.post("/api/orders", async (req, res) => {
-  const { foodName, basePrice, addOns, specialInstructions, totalPrice, tableNumber } = req.body;
-
-  try {
-    // Find latest order to get next number
-    const latestOrder = await Order.findOne().sort({ createdAt: -1 });
-
-    let nextOrderNumber = 1;
-    if (latestOrder && latestOrder.orderId) {
-      const lastNumber = parseInt(latestOrder.orderId.replace('#', ''));
-      nextOrderNumber = lastNumber + 1;
-    }
-
-    const formattedOrderId = `#${String(nextOrderNumber).padStart(3, '0')}`;
-
-    const newOrder = new Order({
-      orderId: formattedOrderId,
-      foodName,
-      basePrice,
-      addOns,
-      specialInstructions,
-      totalPrice,
-      tableNumber,
-    });
-
-    await newOrder.save();
-
-    // Emit order update to clients
-    io.emit("orderUpdate", { orders: [newOrder] });
-
-    res.status(201).json(newOrder);
-  } catch (error) {
-    console.log("Error in creating order:", error);
-    res.status(500).json({ message: "Error creating order", error });
-  }
-});
-
-// Listening for incoming socket connections
+// ✅ Socket.io Events
 io.on("connection", (socket) => {
-  console.log("A new client connected");
+  console.log("🟢 A new client connected:", socket.id);
+
+  // You can add your custom events here
 
   socket.on("disconnect", () => {
-    console.log("A client disconnected");
+    console.log("🔴 A client disconnected:", socket.id);
   });
 });
 
-// ✅ Server listener
+// ✅ Start Server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

@@ -9,15 +9,22 @@ const socket = io("http://localhost:5000");
 function OrderDetails() {
   const [orders, setOrders] = useState([]);
 
-  useEffect(() => {
-    // Fetch orders initially
-    axios.get("http://localhost:5000/api/orders/my-orders").then((res) => {
-      setOrders(res.data.reverse()); // Latest order first
-    });
+  const fetchOrders = () => {
+    axios
+      .get("http://localhost:5000/api/orders")
+      .then((res) => {
+        setOrders(res.data);
+      })
+      .catch((err) => {
+        console.error("Error fetching orders:", err);
+      });
+  };
 
-    // Listen for new orders via socket
-    socket.on("orderUpdate", ({ orders }) => {
-      setOrders(orders);
+  useEffect(() => {
+    fetchOrders();
+
+    socket.on("orderUpdate", () => {
+      fetchOrders();
     });
 
     return () => {
@@ -52,15 +59,29 @@ function OrderDetails() {
               </tr>
             </thead>
             <tbody className="text-[20px]">
-              {orders.map((order, index) => (
-                <tr key={index} className="text-center">
-                  <td className="p-3">{order.orderId}</td>
-                  <td className="p-3">{order.tableNumber}</td>
-                  <td className="p-3 text-left pl-[7%]">{order.foodName}</td>
-                  <td className="p-3 text-left pl-[5%]">Pending</td> {/* static status */}
-                  <td className="p-3 text-left pl-[5.1%]">View</td>
+              {orders.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center p-3 text-white">
+                    No orders found.
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                orders.map((order, index) => (
+                  <tr key={order._id || index} className="text-center">
+                    <td className="p-3">{order.orderId}</td>
+                    <td className="p-3">{order.tableNumber}</td>
+                    <td className="p-3 text-left pl-[7%]">
+                      {order.foodItems.map((item, idx) => (
+                        <div key={idx}>
+                          🍽 {item.foodName} × {item.quantity} — ₹{item.totalPrice}
+                        </div>
+                      ))}
+                    </td>
+                    <td className="p-3 text-left pl-[5%]">{order.status}</td>
+                    <td className="p-3 text-left pl-[5.1%]">View</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

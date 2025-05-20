@@ -2,39 +2,57 @@ const express = require("express");
 const router = express.Router();
 const Order = require("../models/Order");
 
-// 📌 PLACE a new order (with auto-generated orderId)
-router.post("/place-order", async (req, res) => {
-  const { foodName, basePrice, addOns, specialInstructions, totalPrice, tableNumber } = req.body;
-
-  if (!foodName || !basePrice || !totalPrice || !tableNumber) {
-    return res.status(400).json({ message: "All fields (foodName, basePrice, totalPrice, tableNumber) are required" });
-  }
-
-  try {
-    // Auto-generate orderId like #001, #002
-    const lastOrder = await Order.findOne().sort({ createdAt: -1 });
-    let nextOrderNumber = 1;
-    if (lastOrder && lastOrder.orderId) {
-      nextOrderNumber = parseInt(lastOrder.orderId.replace("#", "")) + 1;
-    }
-    const formattedOrderId = `#${String(nextOrderNumber).padStart(3, "0")}`;
-
-    const newOrder = new Order({
-      foodName,
-      basePrice,
-      addOns,
+module.exports = (io) => {
+  // Place new order
+  router.post("/", async (req, res) => {
+    const {
+      foodItems,
       specialInstructions,
       totalPrice,
       tableNumber,
-      orderId: formattedOrderId,
-    });
+    } = req.body;
 
-    await newOrder.save();
-    res.status(201).json({ message: "Order placed successfully!", order: newOrder });
-  } catch (error) {
-    console.error("❌ Error placing order:", error);
-    res.status(500).json({ message: "Error placing order", error: error.message });
-  }
-});
+    try {
+      const latestOrder = await Order.findOne().sort({ createdAt: -1 });
 
-module.exports = router;
+      let nextOrderNumber = 1;
+      if (latestOrder && latestOrder.orderId) {
+        const lastNumber = parseInt(latestOrder.orderId.replace("#", ""));
+        nextOrderNumber = lastNumber + 1;
+      }
+
+      const formattedOrderId = `#${String(nextOrderNumber).padStart(3, "0")}`;
+
+      const newOrder = new Order({
+        orderId: formattedOrderId,
+        foodItems,
+        specialInstructions,
+        totalPrice,
+        tableNumber,
+      });
+
+      await newOrder.save();
+
+      const allOrders = await Order.find().sort({ createdAt: -1 });
+
+      io.emit("orderUpdate", { orders: allOrders });
+
+      res.status(201).json(newOrder);
+    } catch (error) {
+      console.error("❌ Error creating order:", error);
+      res.status(500).json({ message: "Error creating order", error });
+    }
+  });
+
+  // Get all orders
+  router.get("/", async (req, res) => {
+    try {
+      const orders = await Order.find().sort({ createdAt: -1 });
+      res.status(200).json(orders);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching orders", error });
+    }
+  });
+
+  return router;
+};

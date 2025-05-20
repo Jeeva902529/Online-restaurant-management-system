@@ -5,86 +5,71 @@ import Navbar from "../Components/Navbar.jsx";
 
 function SupplierInfo() {
   const totalSuppliers = 8;
-  const [presentCount, setPresentCount] = useState(0); // Default: 0
-  const [absentCount, setAbsentCount] = useState(0); // Default: 0
-
-  // Array to track attendance for each supplier
+  const [presentCount, setPresentCount] = useState(0); 
+  const [absentCount, setAbsentCount] = useState(0); 
   const [attendance, setAttendance] = useState(Array(totalSuppliers).fill(null));
 
-  // Fetch attendance data on component mount
+  // Fetch attendance data on mount
   useEffect(() => {
-    Axios.get('http://localhost:5000/attendance')
-      .then(response => {
+    Axios.get("http://localhost:5000/attendance/today")
+      .then((response) => {
         const data = response.data;
-        const present = data.filter(supplier => supplier.present === 'present').length;
-        const absent = data.filter(supplier => supplier.present === 'absent').length;
-        
-        setAttendance(data.map(supplier => supplier.present));
+        const updatedAttendance = Array(totalSuppliers).fill(null);
+        let present = 0;
+        let absent = 0;
+
+        data.forEach((entry) => {
+          const index = parseInt(entry.username.split(" ")[1]) - 1; // "Supplier 1" => 0
+          if (entry.present === "present") {
+            updatedAttendance[index] = "present";
+            present++;
+          } else if (entry.present === "absent") {
+            updatedAttendance[index] = "absent";
+            absent++;
+          }
+        });
+
+        setAttendance(updatedAttendance);
         setPresentCount(present);
         setAbsentCount(absent);
       })
-      .catch(error => console.error("There was an error fetching attendance data:", error));
+      .catch((error) => console.error("Error fetching attendance:", error));
   }, []);
 
   const handlePresenceChange = (index, isPresent) => {
-    if (attendance[index] !== null) return; // Prevent multiple attendance entries
+    if (attendance[index] !== null) return; // Prevent multiple entries
 
-    // Update state
-    setAttendance((prev) => {
-      const newAttendance = [...prev];
-      newAttendance[index] = isPresent ? "present" : "absent";
-      return newAttendance;
-    });
+    const presentStatus = isPresent ? "present" : "absent";
 
-    // Update present/absent count
-    if (isPresent) {
-      setPresentCount((prev) => prev + 1);
-    } else {
-      setAbsentCount((prev) => prev + 1);
-    }
+    // UI update
+    const newAttendance = [...attendance];
+    newAttendance[index] = presentStatus;
+    setAttendance(newAttendance);
+    setPresentCount((prev) => (isPresent ? prev + 1 : prev));
+    setAbsentCount((prev) => (!isPresent ? prev + 1 : prev));
 
-    // Send data to backend
-    Axios.post(`http://localhost:5000/attendance/${index + 1}`, { isPresent })
-      .then(response => {
-        console.log('Attendance updated successfully:', response.data);
-      })
-      .catch(error => {
-        console.error('Error updating attendance:', error);
-      });
+    const username = `Supplier ${index + 1}`;
+    const role = `Position ${index + 1}`;
+
+    Axios.post("http://localhost:5000/attendance/mark", {
+      username,
+      role,
+      present: presentStatus,
+    })
+      .then((res) => console.log(res.data))
+      .catch((err) => console.error("Error saving attendance:", err));
   };
 
   return (
     <div className="flex h-screen font-lora">
-      {/* Sidebar Navbar */}
       <Pages />
-
-      {/* Main Content */}
       <div className="flex-1 p-10 text-2xl">
         <Navbar />
         <div className="w-[100%] h-[26%] flex justify-evenly items-center bg-[#2b2c40]">
-          {/* Total Suppliers */}
-          <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
-            <h3 className="text-lg font-semibold">Total Suppliers</h3>
-            <p className="text-2xl font-bold">{totalSuppliers}</p>
-          </div>
-
-          {/* Present Suppliers */}
-          <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
-            <h3 className="text-lg font-semibold">Present Suppliers</h3>
-            <p className="text-2xl font-bold">{presentCount}</p>
-          </div>
-
-          {/* Absent Suppliers */}
-          <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
-            <h3 className="text-lg font-semibold">Absent Suppliers</h3>
-            <p className="text-2xl font-bold">{absentCount}</p>
-          </div>
-
-          {/* Active Suppliers */}
-          <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
-            <h3 className="text-lg font-semibold">Active Suppliers</h3>
-            <p className="text-2xl font-bold">5</p>
-          </div>
+          <InfoCard title="Total Suppliers" count={totalSuppliers} />
+          <InfoCard title="Present Suppliers" count={presentCount} />
+          <InfoCard title="Absent Suppliers" count={absentCount} />
+          <InfoCard title="Active Suppliers" count={5} />
         </div>
 
         <div
@@ -92,7 +77,7 @@ function SupplierInfo() {
           style={{ height: "460px" }}
         >
           <table className="w-full">
-            <thead className="bg-[#2b2c40] text-white border-white text-center rounded-full">
+            <thead className="bg-[#2b2c40] text-white text-center">
               <tr>
                 <th className="p-3">Supplier ID</th>
                 <th className="p-3">Supplier Name</th>
@@ -103,7 +88,6 @@ function SupplierInfo() {
                 <th className="p-3">Presence</th>
               </tr>
             </thead>
-
             <tbody className="text-[18px]">
               {Array.from({ length: totalSuppliers }).map((_, index) => (
                 <tr className="text-center" key={index}>
@@ -143,6 +127,15 @@ function SupplierInfo() {
           </table>
         </div>
       </div>
+    </div>
+  );
+}
+
+function InfoCard({ title, count }) {
+  return (
+    <div className="bg-[#37375b] text-white p-4 rounded-xl text-center flex flex-col justify-center items-center w-[20%] h-[80%]">
+      <h3 className="text-lg font-semibold">{title}</h3>
+      <p className="text-2xl font-bold">{count}</p>
     </div>
   );
 }
