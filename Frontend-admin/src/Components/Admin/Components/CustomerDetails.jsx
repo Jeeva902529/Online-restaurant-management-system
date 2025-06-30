@@ -10,12 +10,12 @@ function CustomerDetails() {
   const [customers, setCustomers] = useState([]);
 
   useEffect(() => {
-    // Fetch initial customer data
-    axios.get("http://localhost:5000/get-customers").then((res) => {
+    // ✅ Fetch initial customer data from corrected route
+    axios.get("http://localhost:5000/api/orders/get-customers").then((res) => {
       setCustomers(res.data);
     });
 
-    // Listen for real-time updates
+    // ✅ Listen for real-time customer updates
     socket.on("customerUpdate", (updatedCustomers) => {
       setCustomers(updatedCustomers);
     });
@@ -55,10 +55,12 @@ function CustomerDetails() {
                   <tr key={index} className="text-center border-b border-gray-600">
                     <td className="p-3 text-blue-400">{customer.id}</td>
                     <td className="p-3">{customer.tableNo}</td>
-                    <td className="p-3 text-center">{customer.name}</td>
-                    <td className="p-3 text-center">{customer.foodItems}</td>
+                    <td className="p-3">{customer.name}</td>
+                    <td className="p-3">{customer.foodItems}</td>
                     <td className="p-3 text-right pr-[2.5%]">{customer.price}</td>
-                    <td className={`p-3 ${customer.payment === "Paid" ? "text-green-400" : "text-red-400"}`}>{customer.payment}</td>
+                    <td className={`p-3 ${customer.payment === "Paid" ? "text-green-400" : "text-red-400"}`}>
+                      {customer.payment}
+                    </td>
                     <td className="p-3">{customer.mode}</td>
                   </tr>
                 ))}
