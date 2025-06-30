@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { addReview, getReviews } = require("../controllers/reviewController");
+const {
+  addComplaint,
+  getComplaints,
+  updateComplaint,
+} = require("../controllers/reviewController");
 
-// Route for adding a review
-router.post("/add", addReview);
-
-// Route for fetching all reviews
-router.get("/", getReviews);
+router.post("/add-complaint", addComplaint);
+router.get("/get-complaints", getComplaints);
+router.put("/update-complaint/:id", updateComplaint);
 
 module.exports = router;

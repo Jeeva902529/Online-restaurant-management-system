@@ -14,12 +14,12 @@ const server = http.createServer(app);
 // ✅ Socket.io setup
 const io = new Server(server, {
   cors: {
-    origin: "*", // Set to your frontend domain in production
-    methods: ["GET", "POST"],
+    origin: "*",
+    methods: ["GET", "POST", "PUT"],
   },
 });
 
-// ✅ Attach io to app so routes can use it
+// ✅ Attach io to app (for use in controllers)
 app.set("io", io);
 
 // ✅ Middleware
@@ -43,14 +43,14 @@ const authRoutes = require("./routes/authRoutes");
 const cartRoutes = require("./routes/cart");
 const loginRoutes = require("./routes/loginRoutes");
 const menuRoutes = require("./routes/menuRoutes");
-const supportRoutes = require("./routes/support");
+const supportRoutes = require("./routes/support"); // for email support
 const bookingRoutes = require("./routes/bookingRoutes");
 const appAuthRoutes = require("./routes/appAuth");
 const foodRoutes = require("./routes/foodRouter");
 const registerRoute = require("./routes/registerRoute");
-const reviewRoutes = require("./routes/reviewRoutes");
+const reviewRoutes = require("./routes/reviewRoutes"); // ✅ COMPLAINTS HANDLER
 const attendanceRoute = require("./routes/attendance");
-const orderRoutes = require("./routes/orders")(io); // Function call passing io
+const orderRoutes = require("./routes/orders")(io); // Orders require io
 
 // ✅ Use Routes
 app.use("/api", authRoutes);
@@ -58,15 +58,15 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/menu", menuRoutes);
-app.use("/api/support", supportRoutes);
+app.use("/api/support", supportRoutes); // Email support endpoint
+app.use("/api/support", reviewRoutes);  // ✅ COMPLAINT API mounted correctly
 app.use("/api/booking", bookingRoutes);
 app.use("/api", appAuthRoutes);
 app.use("/api/foods", foodRoutes);
 app.use("/api", registerRoute);
-app.use("/api/reviews", reviewRoutes);
 app.use("/attendance", attendanceRoute);
 
-// 📩 Support Email Endpoint (Optional)
+// 📩 Optional Support Email Endpoint
 app.post("/api/support", async (req, res) => {
   const { name, email, message } = req.body;
 
@@ -100,12 +100,10 @@ app.post("/api/support", async (req, res) => {
 
 // ✅ Socket.io Events
 io.on("connection", (socket) => {
-  console.log("🟢 A new client connected:", socket.id);
-
-  // You can add your custom events here
+  console.log("🟢 Client connected:", socket.id);
 
   socket.on("disconnect", () => {
-    console.log("🔴 A client disconnected:", socket.id);
+    console.log("🔴 Client disconnected:", socket.id);
   });
 });
 
