@@ -1,81 +1,91 @@
 "use client"
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { Minus, Plus, ArrowLeft, ShoppingCart } from "lucide-react"
+import { Minus, Plus, ArrowLeft } from "lucide-react"
 import { Button } from "./ui/button"
 import { Textarea } from "./ui/textarea"
 import { Dialog, DialogContent } from "./ui/dialog"
 import { ScrollArea } from "./ui/scroll-area"
 import { useNavigate } from "react-router-dom"
-import halwaImage from "../assets/halwa.jpg" // Replace with actual image path
+import halwaImage from "../assets/halwa.jpg" // New image path
 
 export default function HalwaMenu() {
-  const [halwaVarieties, setHalwaVarieties] = useState([])
+  const [halwas, setHalwas] = useState([])
   const [selectedHalwa, setSelectedHalwa] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [addOns, setAddOns] = useState([
-    { name: "VANILLA ICE CREAM SCOOP", price: 25, quantity: 0 },
-    { name: "WHIPPED CREAM", price: 12, quantity: 0 },
-    { name: "CHOCOLATE SAUCE", price: 15, quantity: 0 },
-    { name: "CARAMEL DRIZZLE", price: 18, quantity: 0 },
-    { name: "FRESH FRUITS", price: 20, quantity: 0 },
-    { name: "NUTS (ALMONDS, PISTACHIOS)", price: 30, quantity: 0 },
+    { name: "DRY FRUIT TOPPING", price: 30, quantity: 0 },
+    { name: "SAFFRON INFUSION", price: 25, quantity: 0 },
+    { name: "EXTRA SWEETNESS", price: 15, quantity: 0 },
+    { name: "ROSE WATER SPRAY", price: 10, quantity: 0 },
+    { name: "HONEY DRIZZLE", price: 20, quantity: 0 },
   ])
   const [customNotes, setCustomNotes] = useState("")
-  const [cartItems, setCartItems] = useState([])
   const navigate = useNavigate()
+  const token = localStorage.getItem("token")
+  const tableNumber = localStorage.getItem("tableNumber")
 
   // Fetch Halwa data from API
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/halwa") // Updated API endpoint
-      .then((response) => setHalwaVarieties(response.data))
-      .catch((error) => console.error("Error fetching data:", error))
+      .get("http://localhost:5000/api/foods/halwa")
+      .then((response) => setHalwas(response.data))
+      .catch((error) => console.error("Error fetching halwa data:", error))
   }, [])
 
   const handleQuantityChange = (index, increment) => {
     setAddOns((prev) =>
       prev.map((addon, i) =>
-        i === index ? { ...addon, quantity: Math.max(0, addon.quantity + (increment ? 1 : -1)) } : addon,
-      ),
+        i === index 
+          ? { ...addon, quantity: Math.max(0, addon.quantity + (increment ? 1 : -1)) } 
+          : addon
+      )
     )
   }
 
   const calculateTotal = () => {
-    const addOnsTotal = addOns.reduce((sum, addon) => sum + addon.price * addon.quantity, 0)
+    const addOnsTotal = addOns.reduce((sum, a) => sum + a.price * a.quantity, 0)
     return selectedHalwa ? selectedHalwa.price + addOnsTotal : 0
   }
 
-  const addToCart = () => {
-    if (selectedHalwa) {
-      const token = localStorage.getItem("token")
-      const orderData = {
-        foodName: selectedHalwa.name,
-        basePrice: selectedHalwa.price,
-        addOns: addOns
-          .filter((addon) => addon.quantity > 0)
-          .map((addon) => ({
-            name: addon.name,
-            price: addon.price,
-            quantity: addon.quantity,
-          })),
-        specialInstructions: customNotes,
-        totalPrice: calculateTotal(),
-      }
-      axios
-        .post("http://localhost:5000/api/orders/place-order", orderData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          console.log("Order placed successfully:", response.data)
-          setCartItems((prevItems) => [...prevItems, orderData])
-          setIsModalOpen(false)
-          setAddOns(addOns.map((addon) => ({ ...addon, quantity: 0 })))
-          setCustomNotes("")
-        })
-        .catch((error) => console.error("Error placing order:", error))
+  const addToCart = async () => {
+    if (!token || !tableNumber || !selectedHalwa) {
+      console.error("Missing required fields")
+      return
+    }
+
+    const orderData = {
+      foodName: selectedHalwa.name,
+      basePrice: selectedHalwa.price,
+      addOns: addOns.filter((a) => a.quantity > 0),
+      specialInstructions: customNotes,
+      totalPrice: calculateTotal(),
+      tableNumber
+    }
+
+    try {
+      await axios.post(
+        "http://localhost:5000/api/orders/place-order",
+        orderData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      // Update UI states
+      setIsModalOpen(false)
+      setAddOns(addOns.map(a => ({ ...a, quantity: 0 })))
+      setCustomNotes("")
+      
+      // Update inventory
+      await axios.patch(`http://localhost:5000/api/foods/${selectedHalwa._id}/decrease-quantity`)
+      setHalwas(prev => 
+        prev.map(halwa => 
+          halwa._id === selectedHalwa._id
+            ? { ...halwa, quantity: halwa.quantity - 1 }
+            : halwa
+        )
+      )
+    } catch (error) {
+      console.error("Error adding to cart:", error)
     }
   }
 
@@ -86,11 +96,12 @@ export default function HalwaMenu() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex items-end p-8">
           <div>
             <h1 className="text-5xl font-bold text-white mb-2">HALWA</h1>
-            <p className="text-xl text-gray-200">Rich, dense, and aromatic sweet delicacy</p>
+            <p className="text-xl text-gray-200">Traditional Indian sweets with aromatic flavors</p>
           </div>
         </div>
-        <img src={halwaImage} alt="Halwa Dish" className="object-cover w-full h-full" />
+        <img src={halwaImage} alt="Halwa Dessert" className="object-cover w-full h-full" />
       </div>
+
       {/* Menu Section */}
       <div className="flex flex-1 flex-col bg-gray-50 md:h-screen md:overflow-hidden">
         <div className="sticky top-0 bg-gray-50 p-6 pb-4 z-10 shadow-sm">
@@ -104,19 +115,24 @@ export default function HalwaMenu() {
             </Button>
           </div>
           <h2 className="text-3xl font-bold">
-            <span className="text-[#ff3131]">Flavors of Sweetness</span> <span className="text-[#122348]">Halwa</span>
+            <span className="text-[#ff3131]">Flavors of Asia</span> <span className="text-[#122348]">Halwa</span>
           </h2>
-          <p className="text-gray-600 mt-1">Select your favorite halwa from our delightful collection</p>
+          <p className="text-gray-600 mt-1">Classic Indian dessert with global twists</p>
         </div>
+
         <div className="flex-1 overflow-y-auto p-6 pt-2">
           <div className="grid gap-4">
-            {halwaVarieties.map((item, index) => (
+            {halwas.map((item, index) => (
               <div
                 key={index}
-                className="rounded-xl bg-white p-6 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100"
+                className={`rounded-xl bg-white p-6 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 ${
+                  item.quantity === 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                }`}
                 onClick={() => {
-                  setSelectedHalwa(item)
-                  setIsModalOpen(true)
+                  if (item.quantity > 0) {
+                    setSelectedHalwa(item)
+                    setIsModalOpen(true)
+                  }
                 }}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -126,27 +142,38 @@ export default function HalwaMenu() {
                     </h3>
                     <p className="text-sm text-gray-600">"{item.description}"</p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                        Bestseller
+                      <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-0.5 text-xs font-medium text-orange-800">
+                        Traditional Sweet
                       </span>
-                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                        Sweet
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        item.type === "special" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
+                      }`}>
+                        {item.type === "special" ? "Signature" : "Classic"}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="block text-xl font-bold text-[#ff3131]">₹{item.price}</span>
-                    <span className="text-xs text-gray-500">Customizable</span>
+                    {item.quantity > 0 ? (
+                      <>
+                        <span className="block text-xl font-bold text-[#ff3131]">₹{item.price}</span>
+                        <span className="text-xs text-gray-500">Customizable</span>
+                      </>
+                    ) : (
+                      <span className="inline-block text-xs font-semibold text-red-500 border border-red-500 px-2 py-1 rounded-md">
+                        Sold Out
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="bg-white max-w-md md:max-w-3xl rounded-xl shadow-lg p-0 overflow-hidden">
             <div className="flex flex-col md:flex-row">
-              {/* Left side - Image (hidden on mobile) */}
+              {/* Left side - Image */}
               <div className="relative hidden md:block md:w-2/5 h-auto bg-[#122348]">
                 <img
                   src={halwaImage}
@@ -157,15 +184,18 @@ export default function HalwaMenu() {
                   <h2 className="text-3xl font-bold text-white text-center px-4">{selectedHalwa?.name} Halwa</h2>
                 </div>
               </div>
+
               {/* Right side - Content */}
               <div className="p-4 md:p-5 w-full md:w-3/5">
-                {/* Mobile only title */}
+                {/* Mobile title */}
                 <div className="md:hidden mb-3">
                   <h2 className="text-xl font-bold text-[#122348]">
                     {selectedHalwa?.name} <span className="text-[#ff3131]">Halwa</span>
                   </h2>
                 </div>
+                
                 <p className="text-gray-600 text-sm italic mb-3">{selectedHalwa?.description}</p>
+                
                 <div className="mb-3">
                   <h4 className="font-medium text-[#122348] mb-2 text-sm">Add Extras</h4>
                   <ScrollArea className="h-36 rounded-md border">
@@ -211,20 +241,23 @@ export default function HalwaMenu() {
                     </div>
                   </ScrollArea>
                 </div>
+
                 <div className="mb-3">
                   <h4 className="font-medium text-[#122348] mb-1 text-sm">Special Instructions</h4>
                   <Textarea
-                    placeholder="Any special requests? (e.g., extra nuts, less sugar)"
+                    placeholder="Any special requests? (e.g., extra dry fruits, no cardamom)"
                     value={customNotes}
                     onChange={(e) => setCustomNotes(e.target.value)}
                     className="border-gray-300 focus:ring-[#122348] text-sm resize-none h-16"
                   />
                 </div>
+
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                   <span className="text-lg font-bold text-[#122348]">Total: ₹{calculateTotal()}</span>
                   <Button
-                    className="bg-gradient-to-r from-[#ff3131] to-[#ff5733] hover:from-[#e62c2c] hover:to-[#e64e2e] text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                    className="bg-gradient-to-r from-[#ff3131] to-[#ff5733] hover:from-[#e62c2c] hover:to-[#e64e2e] text-white px-4 py-1.5 rounded-lg text-sm font-semibold shadow-md transition-all duration-300 ease-in-out active:scale-95"
                     onClick={addToCart}
+                    disabled={!selectedHalwa || !tableNumber}
                   >
                     ADD TO CART
                   </Button>

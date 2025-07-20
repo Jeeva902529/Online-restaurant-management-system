@@ -1,86 +1,90 @@
 "use client"
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { Minus, Plus, ArrowLeft, ShoppingCart } from "lucide-react"
+import { Minus, Plus, ArrowLeft } from "lucide-react"
 import { Button } from "./ui/button"
 import { Textarea } from "./ui/textarea"
 import { Dialog, DialogContent } from "./ui/dialog"
 import { ScrollArea } from "./ui/scroll-area"
 import { useNavigate } from "react-router-dom"
-import momosImage from "../assets/momosmenu.jpg" // Replace with actual image path
+import momosImage from "../assets/momosmenu.jpg" // New image path
 
 export default function MomosMenu() {
   const [momosVarieties, setMomosVarieties] = useState([])
-  const [selectedMomo, setSelectedMomo] = useState(null)
+  const [selectedMomos, setSelectedMomos] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [addOns, setAddOns] = useState([
-    { name: "SPICY SAUCE", price: 10, quantity: 0 },
-    { name: "EXTRA VEGGIES", price: 15, quantity: 0 },
-    { name: "CHEESE DIP", price: 20, quantity: 0 },
-    { name: "GARLIC MAYO", price: 12, quantity: 0 },
+    { name: "EXTRA CHUTNEY", price: 10, quantity: 0 },
+    { name: "CHEESE STUFFING", price: 25, quantity: 0 },
+    { name: "SPICY FILLING", price: 15, quantity: 0 },
+    { name: "CRISPY EXTERIOR", price: 20, quantity: 0 },
+    { name: "VEGETABLE TOPPING", price: 10, quantity: 0 },
   ])
   const [customNotes, setCustomNotes] = useState("")
-  const [cartItems, setCartItems] = useState([])
   const navigate = useNavigate()
+  const token = localStorage.getItem("token")
+  const tableNumber = localStorage.getItem("tableNumber")
 
   // Fetch Momos data from API
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/momos") // Updated API endpoint
+      .get("http://localhost:5000/api/foods/momos")
       .then((response) => setMomosVarieties(response.data))
-      .catch((error) => console.error("Error fetching data:", error))
+      .catch((error) => console.error("Error fetching momos data:", error))
   }, [])
 
   const handleQuantityChange = (index, increment) => {
     setAddOns((prev) =>
       prev.map((addon, i) =>
-        i === index ? { ...addon, quantity: Math.max(0, addon.quantity + (increment ? 1 : -1)) } : addon,
-      ),
+        i === index 
+          ? { ...addon, quantity: Math.max(0, addon.quantity + (increment ? 1 : -1)) } 
+          : addon
+      )
     )
   }
 
   const calculateTotal = () => {
     const addOnsTotal = addOns.reduce((sum, addon) => sum + addon.price * addon.quantity, 0)
-    return selectedMomo ? selectedMomo.price + addOnsTotal : 0
+    return selectedMomos ? selectedMomos.price + addOnsTotal : 0
   }
 
-  const addToCart = () => {
-    if (selectedMomo) {
-      const token = localStorage.getItem("token")
+  const addToCart = async () => {
+    if (!token || !tableNumber || !selectedMomos) {
+      console.error("Missing required fields")
+      return
+    }
 
-      // Decode the token to extract the tableNumber
-      const decodedToken = JSON.parse(atob(token.split(".")[1])) // Decoding JWT payload
-      const tableNumber = decodedToken.tableNumber
+    try {
+      await axios.post(
+        "http://localhost:5000/api/orders/place-order",
+        {
+          foodName: selectedMomos.name,
+          basePrice: selectedMomos.price,
+          addOns: addOns.filter((addon) => addon.quantity > 0),
+          specialInstructions: customNotes,
+          totalPrice: calculateTotal(),
+          tableNumber
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
 
-      const orderData = {
-        foodName: selectedMomo.name,
-        basePrice: selectedMomo.price,
-        addOns: addOns
-          .filter((addon) => addon.quantity > 0)
-          .map((addon) => ({
-            name: addon.name,
-            price: addon.price,
-            quantity: addon.quantity,
-          })),
-        specialInstructions: customNotes,
-        totalPrice: calculateTotal(),
-        tableNumber: tableNumber, // ✅ Include tableNumber in the order data
-      }
+      // Update UI states
+      setIsModalOpen(false)
+      setAddOns(prev => prev.map(addon => ({ ...addon, quantity: 0 })))
+      setCustomNotes("")
 
-      axios
-        .post("http://localhost:5000/api/orders/place-order", orderData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((response) => {
-          console.log("Order placed successfully:", response.data)
-          setCartItems((prevItems) => [...prevItems, orderData])
-          setIsModalOpen(false)
-          setAddOns(addOns.map((addon) => ({ ...addon, quantity: 0 })))
-          setCustomNotes("")
-        })
-        .catch((error) => console.error("Error placing order:", error))
+      // Update quantity in backend and UI
+      await axios.patch(`http://localhost:5000/api/foods/${selectedMomos._id}/decrease-quantity`)
+      
+      setMomosVarieties(prev =>
+        prev.map(momo =>
+          momo._id === selectedMomos._id
+            ? { ...momo, quantity: momo.quantity - 1 }
+            : momo
+        )
+      )
+    } catch (error) {
+      console.error("Error adding to cart:", error)
     }
   }
 
@@ -91,7 +95,7 @@ export default function MomosMenu() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex items-end p-8">
           <div>
             <h1 className="text-5xl font-bold text-white mb-2">MOMOS</h1>
-            <p className="text-xl text-gray-200">Steamed dumplings with exotic fillings</p>
+            <p className="text-xl text-gray-200">Steamed & fried dumplings with authentic flavors</p>
           </div>
         </div>
         <img src={momosImage} alt="Momos Dish" className="object-cover w-full h-full" />
@@ -110,19 +114,24 @@ export default function MomosMenu() {
             </Button>
           </div>
           <h2 className="text-3xl font-bold">
-            <span className="text-[#ff3131]">Flavors of India</span> <span className="text-[#122348]">Momos</span>
+            <span className="text-[#ff3131]">Flavors of Asia</span> <span className="text-[#122348]">Momos</span>
           </h2>
-          <p className="text-gray-600 mt-1">Select your favorite momos from our authentic collection</p>
+          <p className="text-gray-600 mt-1">Choose your favorite dumplings from our authentic collection</p>
         </div>
+
         <div className="flex-1 overflow-y-auto p-6 pt-2">
           <div className="grid gap-4">
             {momosVarieties.map((item, index) => (
               <div
                 key={index}
-                className="rounded-xl bg-white p-6 shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer border border-gray-100"
+                className={`rounded-xl bg-white p-6 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 ${
+                  item.quantity === 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                }`}
                 onClick={() => {
-                  setSelectedMomo(item)
-                  setIsModalOpen(true)
+                  if (item.quantity > 0) {
+                    setSelectedMomos(item)
+                    setIsModalOpen(true)
+                  }
                 }}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -133,45 +142,59 @@ export default function MomosMenu() {
                     <p className="text-sm text-gray-600">"{item.description}"</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                        Bestseller
+                        Popular
                       </span>
-                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-                        Spicy
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        item.type === "veg" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                      }`}>
+                        {item.type === "veg" ? "Veg" : "Non-Veg"}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="block text-xl font-bold text-[#ff3131]">₹{item.price}</span>
-                    <span className="text-xs text-gray-500">Customizable</span>
+                    {item.quantity > 0 ? (
+                      <>
+                        <span className="block text-xl font-bold text-[#ff3131]">₹{item.price}</span>
+                        <span className="text-xs text-gray-500">Customizable</span>
+                      </>
+                    ) : (
+                      <span className="inline-block text-xs font-semibold text-red-500 border border-red-500 px-2 py-1 rounded-md">
+                        Sold Out
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
+
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="bg-white max-w-md md:max-w-3xl rounded-xl shadow-lg p-0 overflow-hidden">
             <div className="flex flex-col md:flex-row">
-              {/* Left side - Image (hidden on mobile) */}
+              {/* Left side - Image */}
               <div className="relative hidden md:block md:w-2/5 h-auto bg-[#122348]">
                 <img
                   src={momosImage}
-                  alt={selectedMomo?.name}
+                  alt={selectedMomos?.name}
                   className="w-full h-full object-cover opacity-80"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <h2 className="text-3xl font-bold text-white text-center px-4">{selectedMomo?.name} Momos</h2>
+                  <h2 className="text-3xl font-bold text-white text-center px-4">{selectedMomos?.name} Momos</h2>
                 </div>
               </div>
+
               {/* Right side - Content */}
               <div className="p-4 md:p-5 w-full md:w-3/5">
-                {/* Mobile only title */}
+                {/* Mobile title */}
                 <div className="md:hidden mb-3">
                   <h2 className="text-xl font-bold text-[#122348]">
-                    {selectedMomo?.name} <span className="text-[#ff3131]">Momos</span>
+                    {selectedMomos?.name} <span className="text-[#ff3131]">Momos</span>
                   </h2>
                 </div>
-                <p className="text-gray-600 text-sm italic mb-3">{selectedMomo?.description}</p>
+                
+                <p className="text-gray-600 text-sm italic mb-3">{selectedMomos?.description}</p>
+                
                 <div className="mb-3">
                   <h4 className="font-medium text-[#122348] mb-2 text-sm">Add Extras</h4>
                   <ScrollArea className="h-36 rounded-md border">
@@ -217,20 +240,23 @@ export default function MomosMenu() {
                     </div>
                   </ScrollArea>
                 </div>
+
                 <div className="mb-3">
                   <h4 className="font-medium text-[#122348] mb-1 text-sm">Special Instructions</h4>
                   <Textarea
-                    placeholder="Any special requests? (e.g., less spicy, no onions)"
+                    placeholder="Any special requests? (e.g., extra spicy, no garlic)"
                     value={customNotes}
                     onChange={(e) => setCustomNotes(e.target.value)}
                     className="border-gray-300 focus:ring-[#122348] text-sm resize-none h-16"
                   />
                 </div>
+
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                   <span className="text-lg font-bold text-[#122348]">Total: ₹{calculateTotal()}</span>
                   <Button
-                    className="bg-gradient-to-r from-[#ff3131] to-[#ff5733] hover:from-[#e62c2c] hover:to-[#e64e2e] text-white px-4 py-1.5 rounded-lg text-sm font-semibold transition-all"
+                    className="bg-gradient-to-r from-[#ff3131] to-[#ff5733] hover:from-[#e62c2c] hover:to-[#e64e2e] text-white px-4 py-1.5 rounded-lg text-sm font-semibold shadow-md transition-all duration-300 ease-in-out active:scale-95"
                     onClick={addToCart}
+                    disabled={!selectedMomos || !tableNumber}
                   >
                     ADD TO CART
                   </Button>
