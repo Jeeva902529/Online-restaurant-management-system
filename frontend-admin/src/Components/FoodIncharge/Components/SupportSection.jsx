@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 const SupportSection = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "" });
 
@@ -24,7 +28,10 @@ const SupportSection = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:5000/api/support", formData);
+      const response = await axios.post(
+        "https://online-restaurant-management-system.onrender.com/api/support",
+        formData
+      );
       setToast({ message: response.data.message, type: "success" });
       setFormData({ name: "", email: "", message: "" });
     } catch (error) {
@@ -50,7 +57,9 @@ const SupportSection = () => {
       <p className="text-gray-600 mb-6">If you have any queries, message us</p>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Your Name</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Your Name
+          </label>
           <input
             type="text"
             name="name"
@@ -62,7 +71,9 @@ const SupportSection = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Your Mail ID</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Your Mail ID
+          </label>
           <input
             type="email"
             name="email"
@@ -74,7 +85,9 @@ const SupportSection = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Description
+          </label>
           <textarea
             name="message"
             placeholder="Enter Your Description ..."

@@ -3,7 +3,11 @@ import axios from "axios";
 import SupportImg from "../Assets/Support.jpg"; // Replace with actual image path
 
 const Support = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ message: "", type: "" });
 
@@ -26,7 +30,10 @@ const Support = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/support", formData);
+      const response = await axios.post(
+        "https://online-restaurant-management-system.onrender.com/api/support",
+        formData
+      );
       setToast({ message: response.data.message, type: "success" });
       setFormData({ name: "", email: "", message: "" });
     } catch (error) {
@@ -52,7 +59,6 @@ const Support = () => {
       {/* Main Container */}
       <div className="min-h-screen flex justify-center items-center bg-gray-100 p-6">
         <div className="bg-white shadow-xl rounded-lg flex flex-col md:flex-row max-w-4xl w-full overflow-hidden transition-all duration-300 hover:shadow-2xl">
-
           {/* Left Side Image */}
           <div className="w-full md:w-1/2">
             <img
@@ -65,13 +71,17 @@ const Support = () => {
           {/* Right Side Form */}
           <div className="w-full md:w-1/2 p-8">
             <h2 className="text-4xl font-bold text-gray-800 mb-2">Support</h2>
-            <p className="text-red-600 mb-6">If you have any queries, message us</p>
+            <p className="text-red-600 mb-6">
+              If you have any queries, message us
+            </p>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-
               {/* Name Field */}
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   Your Name
                 </label>
                 <input
@@ -88,7 +98,10 @@ const Support = () => {
 
               {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   Your Mail ID
                 </label>
                 <input
@@ -105,7 +118,10 @@ const Support = () => {
 
               {/* Message Field */}
               <div>
-                <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label
+                  htmlFor="message"
+                  className="block text-sm font-semibold text-gray-700 mb-2"
+                >
                   Description
                 </label>
                 <textarea

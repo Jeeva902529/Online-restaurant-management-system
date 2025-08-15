@@ -1,57 +1,60 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
-import axios from "axios"
-import { Eye, EyeOff, User, Lock, LogIn, AlertCircle } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Eye, EyeOff, User, Lock, LogIn, AlertCircle } from "lucide-react";
 
 export default function LoginPage({ setIsAuthenticated }) {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
-  const navigate = useNavigate()
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   // Redirect if already authenticated
   useEffect(() => {
-    const isAuthenticated = localStorage.getItem("isAuthenticated")
+    const isAuthenticated = localStorage.getItem("isAuthenticated");
     if (isAuthenticated === "true") {
-      navigate("/dashboard")
+      navigate("/dashboard");
     }
-  }, [navigate])
+  }, [navigate]);
 
   const handleLogin = async (e) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     if (!username || !password) {
-      setError("Username and password are required.")
-      setIsLoading(false)
-      return
+      setError("Username and password are required.");
+      setIsLoading(false);
+      return;
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/login", {
-        username,
-        password,
-      })
+      const res = await axios.post(
+        "https://online-restaurant-management-system.onrender.com/api/login",
+        {
+          username,
+          password,
+        }
+      );
 
-      localStorage.setItem("userRole", res.data.role)
-      localStorage.setItem("isAuthenticated", "true")
+      localStorage.setItem("userRole", res.data.role);
+      localStorage.setItem("isAuthenticated", "true");
 
       if (setIsAuthenticated) {
-        setIsAuthenticated(true)
+        setIsAuthenticated(true);
       }
 
-      navigate("/dashboard")
+      navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid username or password")
+      setError(err.response?.data?.message || "Invalid username or password");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-gray-100 to-gray-200 p-4">
@@ -77,7 +80,10 @@ export default function LoginPage({ setIsAuthenticated }) {
           {/* Card Body */}
           <div className="p-6">
             {error && (
-              <div className="mb-6 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-md" role="alert">
+              <div
+                className="mb-6 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-md"
+                role="alert"
+              >
                 <div className="flex items-center">
                   <AlertCircle className="h-5 w-5 mr-2" />
                   <p className="text-sm">{error}</p>
@@ -88,7 +94,10 @@ export default function LoginPage({ setIsAuthenticated }) {
             <form onSubmit={handleLogin} className="space-y-5">
               {/* Username Input */}
               <div className="space-y-2">
-                <label htmlFor="username" className="block text-gray-700 text-sm font-medium">
+                <label
+                  htmlFor="username"
+                  className="block text-gray-700 text-sm font-medium"
+                >
                   Username
                 </label>
                 <div className="relative">
@@ -110,7 +119,10 @@ export default function LoginPage({ setIsAuthenticated }) {
 
               {/* Password Input */}
               <div className="space-y-2">
-                <label htmlFor="password" className="block text-gray-700 text-sm font-medium">
+                <label
+                  htmlFor="password"
+                  className="block text-gray-700 text-sm font-medium"
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -130,9 +142,15 @@ export default function LoginPage({ setIsAuthenticated }) {
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 transition-colors"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -146,11 +164,17 @@ export default function LoginPage({ setIsAuthenticated }) {
                     type="checkbox"
                     className="h-4 w-4 text-[#ff3131] focus:ring-[#ff3131] border-gray-300 rounded"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-600">
+                  <label
+                    htmlFor="remember-me"
+                    className="ml-2 block text-sm text-gray-600"
+                  >
                     Remember me
                   </label>
                 </div>
-                <a href="#" className="text-sm text-[#ff3131] hover:text-[#ff3131]/80 transition-colors">
+                <a
+                  href="#"
+                  className="text-sm text-[#ff3131] hover:text-[#ff3131]/80 transition-colors"
+                >
                   Forgot password?
                 </a>
               </div>
@@ -202,5 +226,5 @@ export default function LoginPage({ setIsAuthenticated }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

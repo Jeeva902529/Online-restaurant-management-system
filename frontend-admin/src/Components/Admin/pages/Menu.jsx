@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import axios from "axios"
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   PlusCircle,
   Edit,
@@ -14,9 +14,10 @@ import {
   ChevronDown,
   Filter,
   Utensils,
-} from "lucide-react"
+} from "lucide-react";
 
-const API_BASE = "http://localhost:5000/api/foods"
+const API_BASE =
+  "https://online-restaurant-management-system.onrender.com/api/foods";
 
 const foodCategories = [
   { value: "noodles", label: "Noodles", icon: "🍜" },
@@ -42,88 +43,90 @@ const foodCategories = [
   { value: "pastries", label: "Pastries", icon: "🥐" },
   { value: "gulabjamun", label: "Gulab Jamun", icon: "🍯" },
   { value: "jalebi", label: "Jalebi", icon: "🥨" },
-]
+];
 
 const Menu = () => {
-  const [selectedCategory, setSelectedCategory] = useState("noodles")
-  const [items, setItems] = useState([])
-  const [filteredItems, setFilteredItems] = useState([])
-  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("noodles");
+  const [items, setItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [form, setForm] = useState({
     name: "",
     description: "",
     price: "",
     type: "veg",
     quantity: "",
-  })
-  const [editingId, setEditingId] = useState(null)
-  const [message, setMessage] = useState({ text: "", type: "" })
-  const [isLoading, setIsLoading] = useState(false)
-  const [showForm, setShowForm] = useState(false)
-  const [filterType, setFilterType] = useState("all")
+  });
+  const [editingId, setEditingId] = useState(null);
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [filterType, setFilterType] = useState("all");
 
   useEffect(() => {
-    fetchItems()
-    resetForm()
-  }, [selectedCategory])
+    fetchItems();
+    resetForm();
+  }, [selectedCategory]);
 
   useEffect(() => {
     if (searchQuery.trim() === "" && filterType === "all") {
-      setFilteredItems(items)
-      return
+      setFilteredItems(items);
+      return;
     }
 
-    let filtered = [...items]
+    let filtered = [...items];
 
     // Apply search filter
     if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase()
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
-        (item) => item.name.toLowerCase().includes(query) || item.description.toLowerCase().includes(query),
-      )
+        (item) =>
+          item.name.toLowerCase().includes(query) ||
+          item.description.toLowerCase().includes(query)
+      );
     }
 
     // Apply type filter
     if (filterType !== "all") {
-      filtered = filtered.filter((item) => item.type === filterType)
+      filtered = filtered.filter((item) => item.type === filterType);
     }
 
-    setFilteredItems(filtered)
-  }, [searchQuery, items, filterType])
+    setFilteredItems(filtered);
+  }, [searchQuery, items, filterType]);
 
   const fetchItems = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const res = await axios.get(`${API_BASE}/${selectedCategory}`)
-      const data = Array.isArray(res.data) ? res.data : []
-      setItems(data)
-      setFilteredItems(data)
+      const res = await axios.get(`${API_BASE}/${selectedCategory}`);
+      const data = Array.isArray(res.data) ? res.data : [];
+      setItems(data);
+      setFilteredItems(data);
     } catch (err) {
-      console.error("Failed to fetch items:", err)
-      setItems([])
-      setFilteredItems([])
+      console.error("Failed to fetch items:", err);
+      setItems([]);
+      setFilteredItems([]);
       setMessage({
         text: "Failed to fetch items. Please try again.",
         type: "error",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    const { name, price, type, quantity } = form
+    e.preventDefault();
+    const { name, price, type, quantity } = form;
     if (!name || price === "" || type === "" || quantity === "") {
       setMessage({
         text: "Please fill in all required fields.",
         type: "error",
-      })
-      return
+      });
+      return;
     }
 
     const payload = {
@@ -132,38 +135,41 @@ const Menu = () => {
       price: Number(form.price),
       type: form.type,
       quantity: Number(form.quantity),
-    }
+    };
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       if (editingId) {
-        await axios.put(`${API_BASE}/${selectedCategory}/${editingId}`, payload)
+        await axios.put(
+          `${API_BASE}/${selectedCategory}/${editingId}`,
+          payload
+        );
         setMessage({
           text: "Item updated successfully!",
           type: "success",
-        })
+        });
       } else {
-        await axios.post(`${API_BASE}/${selectedCategory}`, payload)
+        await axios.post(`${API_BASE}/${selectedCategory}`, payload);
         setMessage({
           text: "Item added successfully!",
           type: "success",
-        })
+        });
       }
-      resetForm()
-      fetchItems()
+      resetForm();
+      fetchItems();
       if (!editingId) {
-        setShowForm(false)
+        setShowForm(false);
       }
     } catch (err) {
       setMessage({
         text: "Something went wrong. Please try again.",
         type: "error",
-      })
-      console.error(err)
+      });
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const resetForm = () => {
     setForm({
@@ -172,10 +178,10 @@ const Menu = () => {
       price: "",
       type: "veg",
       quantity: "",
-    })
-    setEditingId(null)
-    setMessage({ text: "", type: "" })
-  }
+    });
+    setEditingId(null);
+    setMessage({ text: "", type: "" });
+  };
 
   const handleEdit = (item) => {
     setForm({
@@ -184,50 +190,57 @@ const Menu = () => {
       price: item.price || "",
       type: item.type || "veg",
       quantity: item.quantity || "",
-    })
-    setEditingId(item._id)
-    setMessage({ text: "", type: "" })
-    setShowForm(true)
+    });
+    setEditingId(item._id);
+    setMessage({ text: "", type: "" });
+    setShowForm(true);
 
     // Scroll to form
     setTimeout(() => {
-      document.getElementById("food-form")?.scrollIntoView({ behavior: "smooth" })
-    }, 100)
-  }
+      document
+        .getElementById("food-form")
+        ?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this item?")) {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        await axios.delete(`${API_BASE}/${selectedCategory}/${id}`)
-        fetchItems()
+        await axios.delete(`${API_BASE}/${selectedCategory}/${id}`);
+        fetchItems();
         setMessage({
           text: "Item deleted successfully",
           type: "success",
-        })
+        });
       } catch (err) {
         setMessage({
           text: "Error deleting item",
           type: "error",
-        })
-        console.error(err)
+        });
+        console.error(err);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const getCurrentCategory = () => {
-    return foodCategories.find((cat) => cat.value === selectedCategory) || { label: "Unknown", icon: "🍽️" }
-  }
+    return (
+      foodCategories.find((cat) => cat.value === selectedCategory) || {
+        label: "Unknown",
+        icon: "🍽️",
+      }
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -239,7 +252,9 @@ const Menu = () => {
               <span className="text-3xl mr-2">{getCurrentCategory().icon}</span>
               {getCurrentCategory().label} Management
             </h2>
-            <p className="text-gray-400 mt-1">Manage menu items for {getCurrentCategory().label.toLowerCase()}</p>
+            <p className="text-gray-400 mt-1">
+              Manage menu items for {getCurrentCategory().label.toLowerCase()}
+            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
@@ -250,7 +265,11 @@ const Menu = () => {
                 className="w-full sm:w-64 pl-10 pr-10 py-2 appearance-none bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {foodCategories.map((category) => (
-                  <option key={category.value} value={category.value} className="bg-gray-700">
+                  <option
+                    key={category.value}
+                    value={category.value}
+                    className="bg-gray-700"
+                  >
                     {category.icon} {category.label}
                   </option>
                 ))}
@@ -267,7 +286,11 @@ const Menu = () => {
               onClick={() => setShowForm(!showForm)}
               className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              {showForm ? <XCircle className="h-5 w-5" /> : <PlusCircle className="h-5 w-5" />}
+              {showForm ? (
+                <XCircle className="h-5 w-5" />
+              ) : (
+                <PlusCircle className="h-5 w-5" />
+              )}
               <span>{showForm ? "Cancel" : "Add New Item"}</span>
             </button>
           </div>
@@ -276,7 +299,10 @@ const Menu = () => {
 
       {/* Form Section */}
       {showForm && (
-        <div id="food-form" className="bg-gray-800 p-6 rounded-lg border border-gray-700">
+        <div
+          id="food-form"
+          className="bg-gray-800 p-6 rounded-lg border border-gray-700"
+        >
           <h3 className="text-xl font-bold text-white mb-4 flex items-center">
             {editingId ? (
               <>
@@ -308,7 +334,10 @@ const Menu = () => {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
             <div className="space-y-4 md:col-span-1">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -325,7 +354,9 @@ const Menu = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Description
+                </label>
                 <textarea
                   className="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   name="description"
@@ -405,7 +436,9 @@ const Menu = () => {
 
             <div className="md:col-span-2 flex gap-3 mt-2">
               <button
-                className={`flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+                className={`flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors ${
+                  isLoading ? "opacity-70 cursor-not-allowed" : ""
+                }`}
                 type="submit"
                 disabled={isLoading}
               >
@@ -416,7 +449,11 @@ const Menu = () => {
                   </>
                 ) : (
                   <>
-                    {editingId ? <CheckCircle className="h-5 w-5" /> : <PlusCircle className="h-5 w-5" />}
+                    {editingId ? (
+                      <CheckCircle className="h-5 w-5" />
+                    ) : (
+                      <PlusCircle className="h-5 w-5" />
+                    )}
                     <span>{editingId ? "Update Item" : "Add Item"}</span>
                   </>
                 )}
@@ -480,9 +517,13 @@ const Menu = () => {
             <button
               onClick={fetchItems}
               disabled={isLoading}
-              className={`flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors ${isLoading ? "opacity-70" : ""}`}
+              className={`flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors ${
+                isLoading ? "opacity-70" : ""
+              }`}
             >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCw
+                className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+              />
               <span>Refresh</span>
             </button>
           </div>
@@ -515,8 +556,8 @@ const Menu = () => {
             ) : (
               <button
                 onClick={() => {
-                  setSearchQuery("")
-                  setFilterType("all")
+                  setSearchQuery("");
+                  setFilterType("all");
                 }}
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
               >
@@ -535,16 +576,24 @@ const Menu = () => {
                   <div className="flex justify-between items-start">
                     <div className="flex items-start gap-2">
                       <div
-                        className={`mt-1 w-4 h-4 rounded-full flex-shrink-0 ${item.type === "veg" ? "bg-green-600" : "bg-red-600"}`}
+                        className={`mt-1 w-4 h-4 rounded-full flex-shrink-0 ${
+                          item.type === "veg" ? "bg-green-600" : "bg-red-600"
+                        }`}
                       ></div>
                       <div>
                         <h4 className="font-bold text-white">{item.name}</h4>
-                        <p className="text-sm text-gray-300 line-clamp-2">{item.description || "No description"}</p>
+                        <p className="text-sm text-gray-300 line-clamp-2">
+                          {item.description || "No description"}
+                        </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-blue-400">{formatCurrency(item.price)}</p>
-                      <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
+                      <p className="font-bold text-blue-400">
+                        {formatCurrency(item.price)}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -571,7 +620,7 @@ const Menu = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Menu
+export default Menu;

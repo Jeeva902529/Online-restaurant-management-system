@@ -88,7 +88,9 @@ const OrderDetails = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `http://localhost:5000/deliverystatus/${encodeURIComponent(id)}`
+        `https://online-restaurant-management-system.onrender.com/deliverystatus/${encodeURIComponent(
+          id
+        )}`
       );
       setOrders(response.data);
     } catch (error) {
@@ -128,7 +130,7 @@ const OrderDetails = () => {
       };
 
       await axios.post(
-        "http://localhost:5000/orderdone/complete",
+        "https://online-restaurant-management-system.onrender.com/orderdone/complete",
         completedOrderData
       );
       setOrders((prevOrders) => prevOrders.filter((o) => o._id !== order._id));

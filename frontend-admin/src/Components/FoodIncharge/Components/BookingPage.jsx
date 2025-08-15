@@ -1,45 +1,47 @@
-"use client"
-import { useState, useEffect, Fragment } from "react"
-import { useNavigate } from "react-router-dom"
-import { FaUser, FaBell, FaTrash, FaArrowRight } from "react-icons/fa"
-import { Dialog, Transition } from "@headlessui/react"
+"use client";
+import { useState, useEffect, Fragment } from "react";
+import { useNavigate } from "react-router-dom";
+import { FaUser, FaBell, FaTrash, FaArrowRight } from "react-icons/fa";
+import { Dialog, Transition } from "@headlessui/react";
 
 const BookingPage = () => {
-  const navigate = useNavigate()
-  const [orders, setOrders] = useState({})
-  const [viewModalTable, setViewModalTable] = useState(null)
-  const [cancelMessage, setCancelMessage] = useState("")
-  const [notificationMessage, setNotificationMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState({});
+  const [viewModalTable, setViewModalTable] = useState(null);
+  const [cancelMessage, setCancelMessage] = useState("");
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   // Fetch orders grouped by table number
   const fetchOrders = async () => {
     try {
-      setIsLoading(true)
-      const response = await fetch("http://localhost:5000/api/booking")
-      const data = await response.json()
+      setIsLoading(true);
+      const response = await fetch(
+        "https://online-restaurant-management-system.onrender.com/api/booking"
+      );
+      const data = await response.json();
       const grouped = data.reduce((acc, order) => {
-        if (!acc[order.tableNumber]) acc[order.tableNumber] = []
-        acc[order.tableNumber].push(order)
-        return acc
-      }, {})
-      setOrders(grouped)
+        if (!acc[order.tableNumber]) acc[order.tableNumber] = [];
+        acc[order.tableNumber].push(order);
+        return acc;
+      }, {});
+      setOrders(grouped);
     } catch (error) {
-      console.error("Error fetching orders:", error)
+      console.error("Error fetching orders:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchOrders()
-    const ordersInterval = setInterval(fetchOrders, 5000)
-    return () => clearInterval(ordersInterval)
-  }, [])
+    fetchOrders();
+    const ordersInterval = setInterval(fetchOrders, 5000);
+    return () => clearInterval(ordersInterval);
+  }, []);
 
   // Format date/time
   const formatDateTime = (isoDate) => {
-    const date = new Date(isoDate)
+    const date = new Date(isoDate);
     return date.toLocaleString("en-IN", {
       day: "2-digit",
       month: "short",
@@ -47,49 +49,55 @@ const BookingPage = () => {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-    })
-  }
+    });
+  };
 
   // Delete an order
   const handleDelete = async (id) => {
     try {
-      setIsLoading(true)
-      await fetch(`http://localhost:5000/api/booking/${id}`, { method: "DELETE" })
-      fetchOrders()
-      setCancelMessage("Order Cancelled")
-      setTimeout(() => setCancelMessage(""), 2000)
+      setIsLoading(true);
+      await fetch(
+        `https://online-restaurant-management-system.onrender.com/api/booking/${id}`,
+        { method: "DELETE" }
+      );
+      fetchOrders();
+      setCancelMessage("Order Cancelled");
+      setTimeout(() => setCancelMessage(""), 2000);
     } catch (error) {
-      console.error("Error deleting order:", error)
+      console.error("Error deleting order:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Navigate to Supplier Page
   const handleConfirm = (tableNumber) => {
     if (!orders[tableNumber] || orders[tableNumber].length === 0) {
-      setNotificationMessage("No orders found for this table")
-      setTimeout(() => setNotificationMessage(""), 2000)
-      return
+      setNotificationMessage("No orders found for this table");
+      setTimeout(() => setNotificationMessage(""), 2000);
+      return;
     }
     navigate("/dashboard/supplier", {
       state: {
         tableNumber,
         orders: orders[tableNumber],
-        totalAmount: orders[tableNumber].reduce((sum, order) => sum + order.totalPrice, 0),
+        totalAmount: orders[tableNumber].reduce(
+          (sum, order) => sum + order.totalPrice,
+          0
+        ),
       },
-    })
-  }
+    });
+  };
 
   // Open View Modal
   const handleView = (tableNumber) => {
-    setViewModalTable(tableNumber)
-  }
+    setViewModalTable(tableNumber);
+  };
 
   // Close View Modal
   const closeViewModal = () => {
-    setViewModalTable(null)
-  }
+    setViewModalTable(null);
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen pb-12">
@@ -112,8 +120,12 @@ const BookingPage = () => {
         {/* No Orders Available */}
         {!isLoading && Object.keys(orders).length === 0 && (
           <div className="bg-white p-8 rounded-xl shadow-md text-center">
-            <h3 className="text-xl font-medium text-gray-900 mb-2">No Orders Found</h3>
-            <p className="text-gray-600 mb-6">There are no active orders at the moment.</p>
+            <h3 className="text-xl font-medium text-gray-900 mb-2">
+              No Orders Found
+            </h3>
+            <p className="text-gray-600 mb-6">
+              There are no active orders at the moment.
+            </p>
           </div>
         )}
 
@@ -131,7 +143,9 @@ const BookingPage = () => {
                 </div>
                 <div>
                   <h2 className="font-bold text-lg">Table {tableNumber}</h2>
-                  <span className="text-sm text-gray-500">{orders[tableNumber].length} item(s)</span>
+                  <span className="text-sm text-gray-500">
+                    {orders[tableNumber].length} item(s)
+                  </span>
                 </div>
               </div>
 
@@ -169,7 +183,11 @@ const BookingPage = () => {
 
       {/* View Order Modal */}
       <Transition appear show={!!viewModalTable} as={Fragment}>
-        <Dialog as="div" className="fixed inset-0 z-50 flex items-center justify-center" onClose={closeViewModal}>
+        <Dialog
+          as="div"
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          onClose={closeViewModal}
+        >
           {/* Backdrop Blur */}
           <Transition.Child
             as={Fragment}
@@ -200,21 +218,30 @@ const BookingPage = () => {
 
               {viewModalTable &&
                 orders[viewModalTable]?.map((order) => (
-                  <div key={order._id} className="border-b py-4 last:border-b-0">
-                    <h3 className="font-bold text-lg text-gray-900">{order.foodName}</h3>
+                  <div
+                    key={order._id}
+                    className="border-b py-4 last:border-b-0"
+                  >
+                    <h3 className="font-bold text-lg text-gray-900">
+                      {order.foodName}
+                    </h3>
                     <ul className="mt-2 space-y-1 text-gray-700 text-sm">
                       <li>
                         <strong>Price:</strong> Rs. {order.totalPrice}
                       </li>
                       <li>
                         <strong>Add-ons:</strong>{" "}
-                        {order.addOns?.length ? order.addOns.join(", ") : "None"}
+                        {order.addOns?.length
+                          ? order.addOns.join(", ")
+                          : "None"}
                       </li>
                       <li>
-                        <strong>Instructions:</strong> {order.specialInstructions || "None"}
+                        <strong>Instructions:</strong>{" "}
+                        {order.specialInstructions || "None"}
                       </li>
                       <li>
-                        <strong>Ordered At:</strong> {formatDateTime(order.createdAt)}
+                        <strong>Ordered At:</strong>{" "}
+                        {formatDateTime(order.createdAt)}
                       </li>
                     </ul>
                     <button
@@ -237,7 +264,7 @@ const BookingPage = () => {
         </Dialog>
       </Transition>
     </div>
-  )
-}
+  );
+};
 
-export default BookingPage
+export default BookingPage;

@@ -45,7 +45,7 @@ const SupplierList = () => {
     const fetchSuppliers = async () => {
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/vendors/suppliers"
+          "https://online-restaurant-management-system.onrender.com/api/vendors/suppliers"
         );
         console.log("Fetched suppliers:", response.data);
         setSuppliers(response.data);
@@ -70,7 +70,7 @@ const SupplierList = () => {
 
       try {
         await axios.post(
-          "http://localhost:5000/api/login/logout",
+          "https://online-restaurant-management-system.onrender.com/api/login/logout",
           {},
           {
             withCredentials: true,
@@ -123,7 +123,7 @@ const SupplierList = () => {
       });
 
       const loginResponse = await axios.post(
-        "http://localhost:5000/api/vendors/suppliers/login",
+        "https://online-restaurant-management-system.onrender.com/api/vendors/suppliers/login",
         {
           supplierId: username,
           password: password,
@@ -143,7 +143,7 @@ const SupplierList = () => {
 
         try {
           const orderResponse = await axios.get(
-            `http://localhost:5000/api/ordernotifications/${username}`
+            `https://online-restaurant-management-system.onrender.com/api/ordernotifications/${username}`
           );
           console.log("Order response:", orderResponse.data);
 

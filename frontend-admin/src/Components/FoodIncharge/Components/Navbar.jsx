@@ -14,7 +14,7 @@ const Navbar = ({ setIsAuthenticated }) => {
       // Clear localStorage first
       localStorage.removeItem("userRole");
       localStorage.removeItem("isAuthenticated");
-      
+
       // Set authentication state to false if the setter is provided
       if (setIsAuthenticated) {
         setIsAuthenticated(false);
@@ -22,18 +22,23 @@ const Navbar = ({ setIsAuthenticated }) => {
 
       // Try to call the logout endpoint
       try {
-        const response = await fetch("http://localhost:5000/api/login/logout", {
-          method: "POST",
-          credentials: "include", // include cookies
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await fetch(
+          "https://online-restaurant-management-system.onrender.com/api/login/logout",
+          {
+            method: "POST",
+            credentials: "include", // include cookies
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
         if (response.ok) {
           console.log("Server logout successful");
         } else {
-          console.warn("Server logout failed, but proceeding with client logout");
+          console.warn(
+            "Server logout failed, but proceeding with client logout"
+          );
         }
       } catch (serverError) {
         console.warn("Server logout request failed:", serverError);
@@ -42,7 +47,6 @@ const Navbar = ({ setIsAuthenticated }) => {
 
       // Navigate to login page
       navigate("/", { replace: true });
-      
     } catch (error) {
       console.error("Logout error:", error);
       // Even if there's an error, clear local data and redirect
@@ -72,8 +76,8 @@ const Navbar = ({ setIsAuthenticated }) => {
       {/* Top Header */}
       <header className="bg-red-500 text-white py-1 px-4 flex justify-between items-center">
         <div className="text-sm">Savor the Flavor • Fast & Fresh</div>
-        <button 
-          className="text-white hover:text-gray-200 transition-colors px-3 py-1 rounded" 
+        <button
+          className="text-white hover:text-gray-200 transition-colors px-3 py-1 rounded"
           onClick={handleLogout}
         >
           Logout

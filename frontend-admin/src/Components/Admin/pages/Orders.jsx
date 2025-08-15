@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import axios from "axios"
+import { useState, useEffect } from "react";
+import axios from "axios";
 import {
   Trash2,
   RefreshCw,
@@ -16,123 +16,130 @@ import {
   Users,
   Calendar,
   Eye,
-} from "lucide-react"
+} from "lucide-react";
 
-const API_BASE = "http://localhost:5000/api/orders"
+const API_BASE =
+  "https://online-restaurant-management-system.onrender.com/api/orders";
 
 const Orders = () => {
-  const [orders, setOrders] = useState([])
-  const [filteredOrders, setFilteredOrders] = useState([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState({ text: "", type: "" })
-  const [filterTable, setFilterTable] = useState("all")
-  const [selectedOrder, setSelectedOrder] = useState(null)
-  const [showOrderDetails, setShowOrderDetails] = useState(false)
+  const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState({ text: "", type: "" });
+  const [filterTable, setFilterTable] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showOrderDetails, setShowOrderDetails] = useState(false);
 
   useEffect(() => {
-    fetchOrders()
-  }, [])
+    fetchOrders();
+  }, []);
 
   useEffect(() => {
     if (searchQuery.trim() === "" && filterTable === "all") {
-      setFilteredOrders(orders)
-      return
+      setFilteredOrders(orders);
+      return;
     }
 
-    let filtered = [...orders]
+    let filtered = [...orders];
 
     // Apply search filter
     if (searchQuery.trim() !== "") {
-      const query = searchQuery.toLowerCase()
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
         (order) =>
           order.foodName.toLowerCase().includes(query) ||
           order.specialInstructions?.toLowerCase().includes(query) ||
-          order.tableNumber.toString().includes(query),
-      )
+          order.tableNumber.toString().includes(query)
+      );
     }
 
     // Apply table filter
     if (filterTable !== "all") {
-      filtered = filtered.filter((order) => order.tableNumber.toString() === filterTable)
+      filtered = filtered.filter(
+        (order) => order.tableNumber.toString() === filterTable
+      );
     }
 
-    setFilteredOrders(filtered)
-  }, [searchQuery, orders, filterTable])
+    setFilteredOrders(filtered);
+  }, [searchQuery, orders, filterTable]);
 
   const fetchOrders = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const response = await axios.get(`${API_BASE}/my-orders`)
-      const data = Array.isArray(response.data) ? response.data : []
-      setOrders(data)
-      setFilteredOrders(data)
-      setMessage({ text: "", type: "" })
+      const response = await axios.get(`${API_BASE}/my-orders`);
+      const data = Array.isArray(response.data) ? response.data : [];
+      setOrders(data);
+      setFilteredOrders(data);
+      setMessage({ text: "", type: "" });
     } catch (error) {
-      console.error("Failed to fetch orders:", error)
-      setOrders([])
-      setFilteredOrders([])
+      console.error("Failed to fetch orders:", error);
+      setOrders([]);
+      setFilteredOrders([]);
       setMessage({
         text: "Failed to fetch orders. Please try again.",
         type: "error",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleCancelOrder = async (orderId) => {
     if (window.confirm("Are you sure you want to cancel this order?")) {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        await axios.delete(`${API_BASE}/cancel-order/${orderId}`)
-        fetchOrders()
+        await axios.delete(`${API_BASE}/cancel-order/${orderId}`);
+        fetchOrders();
         setMessage({
           text: "Order cancelled successfully",
           type: "success",
-        })
+        });
       } catch (error) {
         setMessage({
           text: "Error cancelling order",
           type: "error",
-        })
-        console.error(error)
+        });
+        console.error(error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const handleMarkTablePaid = async (tableNumber) => {
-    if (window.confirm(`Mark all orders for Table ${tableNumber} as paid and complete?`)) {
-      setIsLoading(true)
+    if (
+      window.confirm(
+        `Mark all orders for Table ${tableNumber} as paid and complete?`
+      )
+    ) {
+      setIsLoading(true);
       try {
-        await axios.post(`${API_BASE}/mark-paid/${tableNumber}`)
-        fetchOrders()
+        await axios.post(`${API_BASE}/mark-paid/${tableNumber}`);
+        fetchOrders();
         setMessage({
           text: `Table ${tableNumber} orders marked as paid and completed`,
           type: "success",
-        })
+        });
       } catch (error) {
         setMessage({
           text: "Error marking orders as paid",
           type: "error",
-        })
-        console.error(error)
+        });
+        console.error(error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString("en-IN", {
@@ -141,31 +148,36 @@ const Orders = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   const getUniqueTableNumbers = () => {
-    const tables = [...new Set(orders.map((order) => order.tableNumber))].sort((a, b) => a - b)
-    return tables
-  }
+    const tables = [...new Set(orders.map((order) => order.tableNumber))].sort(
+      (a, b) => a - b
+    );
+    return tables;
+  };
 
   const getOrdersByTable = (tableNumber) => {
-    return orders.filter((order) => order.tableNumber === tableNumber)
-  }
+    return orders.filter((order) => order.tableNumber === tableNumber);
+  };
 
   const getTotalByTable = (tableNumber) => {
-    return getOrdersByTable(tableNumber).reduce((sum, order) => sum + order.totalPrice, 0)
-  }
+    return getOrdersByTable(tableNumber).reduce(
+      (sum, order) => sum + order.totalPrice,
+      0
+    );
+  };
 
   const showOrderDetailsModal = (order) => {
-    setSelectedOrder(order)
-    setShowOrderDetails(true)
-  }
+    setSelectedOrder(order);
+    setShowOrderDetails(true);
+  };
 
   const closeOrderDetailsModal = () => {
-    setSelectedOrder(null)
-    setShowOrderDetails(false)
-  }
+    setSelectedOrder(null);
+    setShowOrderDetails(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -175,7 +187,9 @@ const Orders = () => {
         <button
           onClick={fetchOrders}
           disabled={isLoading}
-          className={`flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors ${isLoading ? "opacity-70" : ""}`}
+          className={`flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors ${
+            isLoading ? "opacity-70" : ""
+          }`}
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
           <span>Refresh</span>
@@ -197,7 +211,9 @@ const Orders = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Active Tables</p>
-              <p className="text-2xl font-bold text-white">{getUniqueTableNumbers().length}</p>
+              <p className="text-2xl font-bold text-white">
+                {getUniqueTableNumbers().length}
+              </p>
             </div>
             <Users className="h-8 w-8 text-green-500" />
           </div>
@@ -207,7 +223,9 @@ const Orders = () => {
             <div>
               <p className="text-gray-400 text-sm">Total Revenue</p>
               <p className="text-2xl font-bold text-white">
-                {formatCurrency(orders.reduce((sum, order) => sum + order.totalPrice, 0))}
+                {formatCurrency(
+                  orders.reduce((sum, order) => sum + order.totalPrice, 0)
+                )}
               </p>
             </div>
             <DollarSign className="h-8 w-8 text-yellow-500" />
@@ -219,7 +237,10 @@ const Orders = () => {
               <p className="text-gray-400 text-sm">Avg Order Value</p>
               <p className="text-2xl font-bold text-white">
                 {orders.length > 0
-                  ? formatCurrency(orders.reduce((sum, order) => sum + order.totalPrice, 0) / orders.length)
+                  ? formatCurrency(
+                      orders.reduce((sum, order) => sum + order.totalPrice, 0) /
+                        orders.length
+                    )
                   : "₹0"}
               </p>
             </div>
@@ -307,8 +328,8 @@ const Orders = () => {
             {orders.length > 0 && (
               <button
                 onClick={() => {
-                  setSearchQuery("")
-                  setFilterTable("all")
+                  setSearchQuery("");
+                  setFilterTable("all");
                 }}
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
               >
@@ -353,7 +374,9 @@ const Orders = () => {
                         className="flex items-center text-blue-400 hover:text-blue-300"
                       >
                         <Eye className="h-4 w-4 mr-1" />
-                        <span className="text-sm font-medium">#{order._id.slice(-6)}</span>
+                        <span className="text-sm font-medium">
+                          #{order._id.slice(-6)}
+                        </span>
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -363,8 +386,12 @@ const Orders = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div>
-                        <div className="text-sm font-medium text-white">{order.foodName}</div>
-                        <div className="text-sm text-gray-400">Base: {formatCurrency(order.basePrice)}</div>
+                        <div className="text-sm font-medium text-white">
+                          {order.foodName}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                          Base: {formatCurrency(order.basePrice)}
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -372,18 +399,25 @@ const Orders = () => {
                         <div className="text-sm text-gray-300">
                           {order.addOns.map((addon, index) => (
                             <div key={index}>
-                              {addon.name} (x{addon.quantity}) - {formatCurrency(addon.price)}
+                              {addon.name} (x{addon.quantity}) -{" "}
+                              {formatCurrency(addon.price)}
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-gray-500 text-sm">No add-ons</span>
+                        <span className="text-gray-500 text-sm">
+                          No add-ons
+                        </span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-lg font-bold text-green-400">{formatCurrency(order.totalPrice)}</span>
+                      <span className="text-lg font-bold text-green-400">
+                        {formatCurrency(order.totalPrice)}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{formatDate(order.createdAt)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {formatDate(order.createdAt)}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
                         <button
@@ -414,14 +448,23 @@ const Orders = () => {
           <h3 className="text-xl font-bold text-white mb-4">Table Summary</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {getUniqueTableNumbers().map((tableNum) => (
-              <div key={tableNum} className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+              <div
+                key={tableNum}
+                className="bg-gray-700 p-4 rounded-lg border border-gray-600"
+              >
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h4 className="text-lg font-semibold text-white">Table {tableNum}</h4>
-                    <p className="text-sm text-gray-400">{getOrdersByTable(tableNum).length} orders</p>
+                    <h4 className="text-lg font-semibold text-white">
+                      Table {tableNum}
+                    </h4>
+                    <p className="text-sm text-gray-400">
+                      {getOrdersByTable(tableNum).length} orders
+                    </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-green-400">{formatCurrency(getTotalByTable(tableNum))}</p>
+                    <p className="text-lg font-bold text-green-400">
+                      {formatCurrency(getTotalByTable(tableNum))}
+                    </p>
                   </div>
                 </div>
                 <button
@@ -444,7 +487,10 @@ const Orders = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-white">Order Details</h3>
-                <button onClick={closeOrderDetailsModal} className="text-gray-400 hover:text-white">
+                <button
+                  onClick={closeOrderDetailsModal}
+                  className="text-gray-400 hover:text-white"
+                >
                   <XCircle className="h-6 w-6" />
                 </button>
               </div>
@@ -453,27 +499,39 @@ const Orders = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Order ID</p>
-                    <p className="text-white font-medium">#{selectedOrder._id}</p>
+                    <p className="text-white font-medium">
+                      #{selectedOrder._id}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Table Number</p>
-                    <p className="text-white font-medium">Table {selectedOrder.tableNumber}</p>
+                    <p className="text-white font-medium">
+                      Table {selectedOrder.tableNumber}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Order Time</p>
-                    <p className="text-white font-medium">{formatDate(selectedOrder.createdAt)}</p>
+                    <p className="text-white font-medium">
+                      {formatDate(selectedOrder.createdAt)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Total Price</p>
-                    <p className="text-green-400 font-bold text-lg">{formatCurrency(selectedOrder.totalPrice)}</p>
+                    <p className="text-green-400 font-bold text-lg">
+                      {formatCurrency(selectedOrder.totalPrice)}
+                    </p>
                   </div>
                 </div>
 
                 <div>
                   <p className="text-sm text-gray-400 mb-2">Food Item</p>
                   <div className="bg-gray-700 p-3 rounded-lg">
-                    <p className="text-white font-medium">{selectedOrder.foodName}</p>
-                    <p className="text-gray-400 text-sm">Base Price: {formatCurrency(selectedOrder.basePrice)}</p>
+                    <p className="text-white font-medium">
+                      {selectedOrder.foodName}
+                    </p>
+                    <p className="text-gray-400 text-sm">
+                      Base Price: {formatCurrency(selectedOrder.basePrice)}
+                    </p>
                   </div>
                 </div>
 
@@ -482,11 +540,16 @@ const Orders = () => {
                     <p className="text-sm text-gray-400 mb-2">Add-ons</p>
                     <div className="bg-gray-700 p-3 rounded-lg space-y-2">
                       {selectedOrder.addOns.map((addon, index) => (
-                        <div key={index} className="flex justify-between items-center">
+                        <div
+                          key={index}
+                          className="flex justify-between items-center"
+                        >
                           <span className="text-white">
                             {addon.name} (x{addon.quantity})
                           </span>
-                          <span className="text-gray-400">{formatCurrency(addon.price)}</span>
+                          <span className="text-gray-400">
+                            {formatCurrency(addon.price)}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -495,9 +558,13 @@ const Orders = () => {
 
                 {selectedOrder.specialInstructions && (
                   <div>
-                    <p className="text-sm text-gray-400 mb-2">Special Instructions</p>
+                    <p className="text-sm text-gray-400 mb-2">
+                      Special Instructions
+                    </p>
                     <div className="bg-gray-700 p-3 rounded-lg">
-                      <p className="text-white">{selectedOrder.specialInstructions}</p>
+                      <p className="text-white">
+                        {selectedOrder.specialInstructions}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -523,7 +590,7 @@ const Orders = () => {
         </div>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Orders
+export default Orders;

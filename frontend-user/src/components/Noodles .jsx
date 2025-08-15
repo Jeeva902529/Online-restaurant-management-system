@@ -1,66 +1,74 @@
-"use client"
-import { useState, useEffect } from "react"
-import axios from "axios"
-import { Minus, Plus, ArrowLeft, ShoppingCart } from "lucide-react"
-import { Button } from "./ui/button"
-import { Textarea } from "./ui/textarea"
-import { Dialog, DialogContent } from "./ui/dialog"
-import { DialogTitle, DialogDescription } from "./ui/dialog"
-import { ScrollArea } from "./ui/scroll-area"
-import { useNavigate } from "react-router-dom"
+"use client";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Minus, Plus, ArrowLeft, ShoppingCart } from "lucide-react";
+import { Button } from "./ui/button";
+import { Textarea } from "./ui/textarea";
+import { Dialog, DialogContent } from "./ui/dialog";
+import { DialogTitle, DialogDescription } from "./ui/dialog";
+import { ScrollArea } from "./ui/scroll-area";
+import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode"; // ✅ Correct named import
-import noodlesImage from "../assets/noodlesmenu.jpg" // Replace with actual image path
+import noodlesImage from "../assets/noodlesmenu.jpg"; // Replace with actual image path
 const token = localStorage.getItem("token");
 const tableNumber = localStorage.getItem("tableNumber");
 
 export default function NoodlesMenu() {
-  const [noodlesVarieties, setNoodlesVarieties] = useState([])
-  const [selectedNoodle, setSelectedNoodle] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [noodlesVarieties, setNoodlesVarieties] = useState([]);
+  const [selectedNoodle, setSelectedNoodle] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [addOns, setAddOns] = useState([
     { name: "EXTRA VEGGIES", price: 15, quantity: 0 },
     { name: "CHICKEN", price: 40, quantity: 0 },
     { name: "SHRIMP", price: 50, quantity: 0 },
     { name: "SPICY SAUCE", price: 10, quantity: 0 },
     { name: "CHEESE TOPPING", price: 20, quantity: 0 },
-  ])
-  const [customNotes, setCustomNotes] = useState("")
-  const [cartItems, setCartItems] = useState([])
-  const navigate = useNavigate()
+  ]);
+  const [customNotes, setCustomNotes] = useState("");
+  const [cartItems, setCartItems] = useState([]);
+  const navigate = useNavigate();
 
   // Fetch Noodles data from API
   useEffect(() => {
     console.log("Selected Noodle at addToCart:", selectedNoodle);
 
     axios
-    .get(`http://localhost:5000/api/foods/noodles`)
+      .get(
+        `https://online-restaurant-management-system.onrender.com/api/foods/noodles`
+      )
       .then((response) => setNoodlesVarieties(response.data))
-      .catch((error) => console.error("Error fetching data:", error))
-  }, [])
-  
-  
+      .catch((error) => console.error("Error fetching data:", error));
+  }, []);
 
   const handleQuantityChange = (index, increment) => {
     setAddOns((prev) =>
       prev.map((addon, i) =>
-        i === index ? { ...addon, quantity: Math.max(0, addon.quantity + (increment ? 1 : -1)) } : addon,
-      ),
-    )
-  }
+        i === index
+          ? {
+              ...addon,
+              quantity: Math.max(0, addon.quantity + (increment ? 1 : -1)),
+            }
+          : addon
+      )
+    );
+  };
 
   const calculateTotal = () => {
-    const addOnsTotal = addOns.reduce((sum, addon) => sum + addon.price * addon.quantity, 0)
-    return selectedNoodle ? selectedNoodle.price + addOnsTotal : 0
-  }
+    const addOnsTotal = addOns.reduce(
+      (sum, addon) => sum + addon.price * addon.quantity,
+      0
+    );
+    return selectedNoodle ? selectedNoodle.price + addOnsTotal : 0;
+  };
 
   const addToCart = async () => {
     const token = localStorage.getItem("token");
-  
+
     if (!token || !tableNumber || !selectedNoodle) {
       console.error("Missing token, tableNumber, or selectedNoodle.");
       return;
     }
-  
+
     const orderData = {
       foodName: selectedNoodle.name,
       basePrice: selectedNoodle.price,
@@ -75,44 +83,40 @@ export default function NoodlesMenu() {
       totalPrice: calculateTotal(),
       tableNumber: tableNumber,
     };
-  
+
     try {
       const orderRes = await axios.post(
-        "http://localhost:5000/api/orders/place-order",
+        "https://online-restaurant-management-system.onrender.com/api/orders/place-order",
         orderData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
+
       console.log("Order placed successfully:", orderRes.data);
-  
+
       // Update UI states
       setCartItems((prev) => [...prev, orderData]);
       setIsModalOpen(false);
       setAddOns(addOns.map((addon) => ({ ...addon, quantity: 0 })));
       setCustomNotes("");
-  
+
       // Decrease quantity in backend
-      await axios.patch(`http://localhost:5000/api/foods/${selectedNoodle._id}/decrease-quantity`);
-  
-    
-  
-     
-      setNoodlesVarieties(prev =>
-        prev.map(noodle =>
+      await axios.patch(
+        `https://online-restaurant-management-system.onrender.com/api/foods/${selectedNoodle._id}/decrease-quantity`
+      );
+
+      setNoodlesVarieties((prev) =>
+        prev.map((noodle) =>
           noodle._id === selectedNoodle._id
             ? { ...noodle, quantity: noodle.quantity - 1 }
             : noodle
         )
       );
-      
-  
+
       console.log("Quantity reduced successfully");
     } catch (error) {
       console.error("Error during add to cart or quantity update:", error);
     }
   };
-  
-  
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -121,10 +125,16 @@ export default function NoodlesMenu() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20 flex items-end p-8">
           <div>
             <h1 className="text-5xl font-bold text-white mb-2">NOODLES</h1>
-            <p className="text-xl text-gray-200">Stir-fried noodles with exotic flavors</p>
+            <p className="text-xl text-gray-200">
+              Stir-fried noodles with exotic flavors
+            </p>
           </div>
         </div>
-        <img src={noodlesImage} alt="Noodles Dish" className="object-cover w-full h-full" />
+        <img
+          src={noodlesImage}
+          alt="Noodles Dish"
+          className="object-cover w-full h-full"
+        />
       </div>
       {/* Menu Section */}
       <div className="flex flex-1 flex-col bg-gray-50 md:h-screen md:overflow-hidden">
@@ -139,59 +149,69 @@ export default function NoodlesMenu() {
             </Button>
           </div>
           <h2 className="text-3xl font-bold">
-            <span className="text-[#ff3131]">Flavors of Asia</span> <span className="text-[#122348]">Noodles</span>
+            <span className="text-[#ff3131]">Flavors of Asia</span>{" "}
+            <span className="text-[#122348]">Noodles</span>
           </h2>
-          <p className="text-gray-600 mt-1">Select your favorite noodles from our authentic collection</p>
+          <p className="text-gray-600 mt-1">
+            Select your favorite noodles from our authentic collection
+          </p>
         </div>
         <div className="flex-1 overflow-y-auto p-6 pt-2">
           <div className="grid gap-4">
-          {noodlesVarieties.map((item, index) => (
-  <div
-    key={index}
-    className={`rounded-xl bg-white p-6 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 ${
-      item.quantity === 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
-    }`}
-    onClick={() => {
-      if (item.quantity > 0) {
-        setSelectedNoodle(item)
-        setIsModalOpen(true)
-      }
-    }}
-  >
-
+            {noodlesVarieties.map((item, index) => (
+              <div
+                key={index}
+                className={`rounded-xl bg-white p-6 shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100 ${
+                  item.quantity === 0
+                    ? "opacity-50 cursor-not-allowed"
+                    : "cursor-pointer"
+                }`}
+                onClick={() => {
+                  if (item.quantity > 0) {
+                    setSelectedNoodle(item);
+                    setIsModalOpen(true);
+                  }
+                }}
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="mb-2 text-xl font-bold text-[#122348]">
                       {item.name} <span className="text-[#ff3131]"></span>
                     </h3>
-                    <p className="text-sm text-gray-600">"{item.description}"</p>
+                    <p className="text-sm text-gray-600">
+                      "{item.description}"
+                    </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
                         Bestseller
                       </span>
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-  item.type === "veg"
-    ? "bg-green-100 text-green-800"
-    : "bg-red-100 text-red-800"
-}`}>
-  {item.type === "veg" ? "Veg" : "Non-Veg"}
-</span>
-
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          item.type === "veg"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {item.type === "veg" ? "Veg" : "Non-Veg"}
+                      </span>
                     </div>
                   </div>
                   <div className="text-right">
-  {item.quantity > 0 ? (
-    <>
-      <span className="block text-xl font-bold text-[#ff3131]">₹{item.price}</span>
-      <span className="text-xs text-gray-500">Customizable</span>
-    </>
-  ) : (
-    <span className="inline-block text-xs font-semibold text-red-500 border border-red-500 px-2 py-1 rounded-md">
-      Unavailable
-    </span>
-  )}
-</div>
-
+                    {item.quantity > 0 ? (
+                      <>
+                        <span className="block text-xl font-bold text-[#ff3131]">
+                          ₹{item.price}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Customizable
+                        </span>
+                      </>
+                    ) : (
+                      <span className="inline-block text-xs font-semibold text-red-500 border border-red-500 px-2 py-1 rounded-md">
+                        Unavailable
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -208,7 +228,9 @@ export default function NoodlesMenu() {
                   className="w-full h-full object-cover opacity-80"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <h2 className="text-3xl font-bold text-white text-center px-4">{selectedNoodle?.name} Noodles</h2>
+                  <h2 className="text-3xl font-bold text-white text-center px-4">
+                    {selectedNoodle?.name} Noodles
+                  </h2>
                 </div>
               </div>
               {/* Right side - Content */}
@@ -216,12 +238,17 @@ export default function NoodlesMenu() {
                 {/* Mobile only title */}
                 <div className="md:hidden mb-3">
                   <h2 className="text-xl font-bold text-[#122348]">
-                    {selectedNoodle?.name} <span className="text-[#ff3131]">Noodles</span>
+                    {selectedNoodle?.name}{" "}
+                    <span className="text-[#ff3131]">Noodles</span>
                   </h2>
                 </div>
-                <p className="text-gray-600 text-sm italic mb-3">{selectedNoodle?.description}</p>
+                <p className="text-gray-600 text-sm italic mb-3">
+                  {selectedNoodle?.description}
+                </p>
                 <div className="mb-3">
-                  <h4 className="font-medium text-[#122348] mb-2 text-sm">Add Extras</h4>
+                  <h4 className="font-medium text-[#122348] mb-2 text-sm">
+                    Add Extras
+                  </h4>
                   <ScrollArea className="h-36 rounded-md border">
                     <div className="p-3 space-y-2">
                       {addOns.map((addon, index) => (
@@ -230,8 +257,12 @@ export default function NoodlesMenu() {
                           className="flex items-center justify-between p-1.5 rounded-lg bg-gray-50 border border-gray-100"
                         >
                           <div>
-                            <p className="font-medium text-[#122348] text-sm">{addon.name}</p>
-                            <p className="text-xs text-gray-500">₹{addon.price}</p>
+                            <p className="font-medium text-[#122348] text-sm">
+                              {addon.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              ₹{addon.price}
+                            </p>
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Button
@@ -239,8 +270,8 @@ export default function NoodlesMenu() {
                               size="icon"
                               className="h-6 w-6 rounded-md border border-gray-300 bg-white hover:bg-gray-100"
                               onClick={(e) => {
-                                e.stopPropagation()
-                                handleQuantityChange(index, false)
+                                e.stopPropagation();
+                                handleQuantityChange(index, false);
                               }}
                             >
                               <Minus className="h-3 w-3 text-[#ff3131]" />
@@ -253,8 +284,8 @@ export default function NoodlesMenu() {
                               size="icon"
                               className="h-6 w-6 rounded-md border border-gray-300 bg-white hover:bg-gray-100"
                               onClick={(e) => {
-                                e.stopPropagation()
-                                handleQuantityChange(index, true)
+                                e.stopPropagation();
+                                handleQuantityChange(index, true);
                               }}
                             >
                               <Plus className="h-3 w-3 text-[#ff3131]" />
@@ -266,7 +297,9 @@ export default function NoodlesMenu() {
                   </ScrollArea>
                 </div>
                 <div className="mb-3">
-                  <h4 className="font-medium text-[#122348] mb-1 text-sm">Special Instructions</h4>
+                  <h4 className="font-medium text-[#122348] mb-1 text-sm">
+                    Special Instructions
+                  </h4>
                   <Textarea
                     placeholder="Any special requests? (e.g., less spicy, no onions)"
                     value={customNotes}
@@ -275,16 +308,21 @@ export default function NoodlesMenu() {
                   />
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                  <span className="text-lg font-bold text-[#122348]">Total: ₹{calculateTotal()}</span>
+                  <span className="text-lg font-bold text-[#122348]">
+                    Total: ₹{calculateTotal()}
+                  </span>
                   <Button
-  className="bg-gradient-to-r from-[#ff3131] to-[#ff5733] hover:from-[#e62c2c] hover:to-[#e64e2e] text-white px-4 py-1.5 rounded-lg text-sm font-semibold shadow-md transition-all duration-300 ease-in-out active:scale-95"
-  onClick={addToCart}
-  disabled={!selectedNoodle || !tableNumber}
-  title={!selectedNoodle || !tableNumber ? "Select a noodle and table number first" : "Add to cart"}
->
-  ADD TO CART
-</Button>
-
+                    className="bg-gradient-to-r from-[#ff3131] to-[#ff5733] hover:from-[#e62c2c] hover:to-[#e64e2e] text-white px-4 py-1.5 rounded-lg text-sm font-semibold shadow-md transition-all duration-300 ease-in-out active:scale-95"
+                    onClick={addToCart}
+                    disabled={!selectedNoodle || !tableNumber}
+                    title={
+                      !selectedNoodle || !tableNumber
+                        ? "Select a noodle and table number first"
+                        : "Add to cart"
+                    }
+                  >
+                    ADD TO CART
+                  </Button>
                 </div>
               </div>
             </div>
@@ -292,5 +330,5 @@ export default function NoodlesMenu() {
         </Dialog>
       </div>
     </div>
-  )
+  );
 }

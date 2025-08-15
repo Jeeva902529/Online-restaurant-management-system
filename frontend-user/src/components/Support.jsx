@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import axios from "axios"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import axios from "axios";
+import { motion } from "framer-motion";
 
 const SupportPage = () => {
   const [formData, setFormData] = useState({
@@ -10,43 +10,48 @@ const SupportPage = () => {
     email: "",
     subject: "",
     message: "",
-  })
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(null)
-  const [activeTab, setActiveTab] = useState("contact")
-  const [activeQuestion, setActiveQuestion] = useState(null)
+  });
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(null);
+  const [activeTab, setActiveTab] = useState("contact");
+  const [activeQuestion, setActiveQuestion] = useState(null);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
       // In a real app, you would use your actual API endpoint
-      await axios.post("http://localhost:5000/api/support", formData)
+      await axios.post(
+        "https://online-restaurant-management-system.onrender.com/api/support",
+        formData
+      );
       setSuccess({
         type: "success",
-        message: "Your message has been sent successfully! Our team will get back to you shortly.",
-      })
-      setFormData({ name: "", email: "", subject: "", message: "" })
+        message:
+          "Your message has been sent successfully! Our team will get back to you shortly.",
+      });
+      setFormData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
       setSuccess({
         type: "error",
-        message: "Failed to send message. Please try again or contact us directly.",
-      })
+        message:
+          "Failed to send message. Please try again or contact us directly.",
+      });
     }
-    setLoading(false)
+    setLoading(false);
 
     // Scroll to the success message
     setTimeout(() => {
       window.scrollTo({
         top: document.body.scrollHeight,
         behavior: "smooth",
-      })
-    }, 100)
-  }
+      });
+    }, 100);
+  };
 
   const faqQuestions = [
     {
@@ -79,11 +84,11 @@ const SupportPage = () => {
       answer:
         "We maintain a smart casual dress code. While formal attire is not required, we ask that guests refrain from wearing athletic wear, beachwear, or overly casual attire.",
     },
-  ]
+  ];
 
   const toggleQuestion = (id) => {
-    setActiveQuestion(activeQuestion === id ? null : id)
-  }
+    setActiveQuestion(activeQuestion === id ? null : id);
+  };
 
   return (
     <div className="min-h-screen bg-[#f6f6e5]">
@@ -104,7 +109,8 @@ const SupportPage = () => {
             transition={{ delay: 0.2 }}
             className="text-xl text-[#2b2c40] max-w-3xl mx-auto"
           >
-            We're here to help with any questions, concerns, or feedback you may have about your dining experience.
+            We're here to help with any questions, concerns, or feedback you may
+            have about your dining experience.
           </motion.p>
         </div>
 
@@ -113,7 +119,9 @@ const SupportPage = () => {
           <div className="inline-flex rounded-lg border border-[#2b2c40] overflow-hidden">
             <button
               className={`px-6 py-3 font-medium text-lg transition-colors ${
-                activeTab === "contact" ? "bg-[#2b2c40] text-white" : "bg-white text-[#2b2c40] hover:bg-gray-100"
+                activeTab === "contact"
+                  ? "bg-[#2b2c40] text-white"
+                  : "bg-white text-[#2b2c40] hover:bg-gray-100"
               }`}
               onClick={() => setActiveTab("contact")}
             >
@@ -121,7 +129,9 @@ const SupportPage = () => {
             </button>
             <button
               className={`px-6 py-3 font-medium text-lg transition-colors ${
-                activeTab === "faq" ? "bg-[#2b2c40] text-white" : "bg-white text-[#2b2c40] hover:bg-gray-100"
+                activeTab === "faq"
+                  ? "bg-[#2b2c40] text-white"
+                  : "bg-white text-[#2b2c40] hover:bg-gray-100"
               }`}
               onClick={() => setActiveTab("faq")}
             >
@@ -140,9 +150,12 @@ const SupportPage = () => {
                 animate={{ opacity: 1, x: 0 }}
                 className="bg-[#2b2c40] text-white p-8 rounded-2xl shadow-xl"
               >
-                <h2 className="text-3xl font-bold mb-6 text-[#ff3131]">Get in Touch</h2>
+                <h2 className="text-3xl font-bold mb-6 text-[#ff3131]">
+                  Get in Touch
+                </h2>
                 <p className="mb-8 text-gray-300">
-                  Have a question or feedback? Fill out the form or contact us directly using the information below.
+                  Have a question or feedback? Fill out the form or contact us
+                  directly using the information below.
                 </p>
 
                 <div className="space-y-6">
@@ -164,7 +177,9 @@ const SupportPage = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold text-white">Phone</h3>
+                      <h3 className="text-xl font-semibold text-white">
+                        Phone
+                      </h3>
                       <p className="text-gray-300 mt-1">(555) 123-4567</p>
                     </div>
                   </div>
@@ -187,8 +202,12 @@ const SupportPage = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold text-white">Email</h3>
-                      <p className="text-gray-300 mt-1">support@craverestaurant.com</p>
+                      <h3 className="text-xl font-semibold text-white">
+                        Email
+                      </h3>
+                      <p className="text-gray-300 mt-1">
+                        support@craverestaurant.com
+                      </p>
                     </div>
                   </div>
 
@@ -216,8 +235,12 @@ const SupportPage = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold text-white">Address</h3>
-                      <p className="text-gray-300 mt-1">123 Culinary Avenue, Foodie District, NY 10001</p>
+                      <h3 className="text-xl font-semibold text-white">
+                        Address
+                      </h3>
+                      <p className="text-gray-300 mt-1">
+                        123 Culinary Avenue, Foodie District, NY 10001
+                      </p>
                     </div>
                   </div>
 
@@ -239,7 +262,9 @@ const SupportPage = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-xl font-semibold text-white">Hours</h3>
+                      <h3 className="text-xl font-semibold text-white">
+                        Hours
+                      </h3>
                       <p className="text-gray-300 mt-1">Mon-Fri: 11am-10pm</p>
                       <p className="text-gray-300">Sat-Sun: 10am-11pm</p>
                     </div>
@@ -248,12 +273,23 @@ const SupportPage = () => {
               </motion.div>
 
               {/* Contact Form */}
-              <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }}>
-                <form onSubmit={handleSubmit} className="bg-white shadow-xl rounded-2xl p-8">
-                  <h2 className="text-3xl font-bold mb-6 text-[#2b2c40]">Send a Message</h2>
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+              >
+                <form
+                  onSubmit={handleSubmit}
+                  className="bg-white shadow-xl rounded-2xl p-8"
+                >
+                  <h2 className="text-3xl font-bold mb-6 text-[#2b2c40]">
+                    Send a Message
+                  </h2>
 
                   <div className="mb-6">
-                    <label htmlFor="name" className="block text-gray-700 font-medium mb-2">
+                    <label
+                      htmlFor="name"
+                      className="block text-gray-700 font-medium mb-2"
+                    >
                       Your Name
                     </label>
                     <input
@@ -269,7 +305,10 @@ const SupportPage = () => {
                   </div>
 
                   <div className="mb-6">
-                    <label htmlFor="email" className="block text-gray-700 font-medium mb-2">
+                    <label
+                      htmlFor="email"
+                      className="block text-gray-700 font-medium mb-2"
+                    >
                       Your Email
                     </label>
                     <input
@@ -285,7 +324,10 @@ const SupportPage = () => {
                   </div>
 
                   <div className="mb-6">
-                    <label htmlFor="subject" className="block text-gray-700 font-medium mb-2">
+                    <label
+                      htmlFor="subject"
+                      className="block text-gray-700 font-medium mb-2"
+                    >
                       Subject
                     </label>
                     <input
@@ -301,7 +343,10 @@ const SupportPage = () => {
                   </div>
 
                   <div className="mb-6">
-                    <label htmlFor="message" className="block text-gray-700 font-medium mb-2">
+                    <label
+                      htmlFor="message"
+                      className="block text-gray-700 font-medium mb-2"
+                    >
                       Your Message
                     </label>
                     <textarea
@@ -359,7 +404,9 @@ const SupportPage = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`mt-8 p-4 rounded-lg ${
-                  success.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                  success.type === "success"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
                 }`}
               >
                 <div className="flex">
@@ -405,7 +452,9 @@ const SupportPage = () => {
         {activeTab === "faq" && (
           <div className="max-w-3xl mx-auto">
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h2 className="text-3xl font-bold mb-8 text-[#2b2c40]">Frequently Asked Questions</h2>
+              <h2 className="text-3xl font-bold mb-8 text-[#2b2c40]">
+                Frequently Asked Questions
+              </h2>
 
               <div className="space-y-4">
                 {faqQuestions.map((faq) => (
@@ -445,9 +494,12 @@ const SupportPage = () => {
               </div>
 
               <div className="mt-8 p-6 bg-gray-100 rounded-lg">
-                <h3 className="text-xl font-semibold text-[#2b2c40] mb-2">Still have questions?</h3>
+                <h3 className="text-xl font-semibold text-[#2b2c40] mb-2">
+                  Still have questions?
+                </h3>
                 <p className="text-gray-600 mb-4">
-                  If you couldn't find the answer to your question, please don't hesitate to contact us directly.
+                  If you couldn't find the answer to your question, please don't
+                  hesitate to contact us directly.
                 </p>
                 <button
                   onClick={() => setActiveTab("contact")}
@@ -461,8 +513,7 @@ const SupportPage = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default SupportPage
-
+export default SupportPage;
